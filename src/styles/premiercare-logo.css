@@ -1,0 +1,118 @@
+.premiercare-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  line-height: 1;
+  user-select: none;
+}
+
+.premiercare-logo--stacked {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.6rem;
+}
+
+.premiercare-logo--mark {
+  gap: 0;
+}
+
+/* Icon mark — mobile 32–40px, desktop 40–48px */
+.premiercare-logo__mark {
+  flex-shrink: 0;
+  display: block;
+  width: auto;
+  height: clamp(2rem, 3.8vw, 2.5rem);
+  aspect-ratio: 1;
+}
+
+.premiercare-logo__mark--img {
+  object-fit: contain;
+}
+
+.premiercare-logo--header .premiercare-logo__mark {
+  height: clamp(2rem, 3.5vw, 3rem);
+}
+
+.premiercare-logo--footer .premiercare-logo__mark {
+  height: clamp(2.35rem, 4vw, 3rem);
+}
+
+@media (min-width: 901px) {
+  .premiercare-logo--header .premiercare-logo__mark {
+    height: 3rem;
+  }
+}
+
+/* Wordmark — matches official PREMIERCARE typography */
+.premiercare-logo__wordmark {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.premiercare-logo--stacked .premiercare-logo__wordmark {
+  align-items: center;
+}
+
+.premiercare-logo__name {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: clamp(0.92rem, 2.1vw, 1.08rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.premiercare-logo--footer .premiercare-logo__name {
+  font-size: clamp(0.98rem, 2.3vw, 1.12rem);
+  letter-spacing: 0.055em;
+}
+
+.premiercare-logo__premier {
+  color: #03989e;
+}
+
+.premiercare-logo__premier--footer {
+  color: #ffffff;
+}
+
+.premiercare-logo__care {
+  color: #ffc85e;
+}
+
+.premiercare-logo__tagline {
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: clamp(0.44rem, 1vw, 0.52rem);
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #a6a6a6;
+  line-height: 1.2;
+  padding-left: 0.05em;
+}
+
+.premiercare-logo--header .premiercare-logo__tagline {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .premiercare-logo--header .premiercare-logo__tagline {
+    display: block;
+  }
+}
+
+.premiercare-logo__tagline--footer {
+  color: #a6a6a6;
+  letter-spacing: 0.26em;
+}
+
+.premiercare-logo--stacked .premiercare-logo__tagline {
+  display: block;
+  padding-left: 0;
+}

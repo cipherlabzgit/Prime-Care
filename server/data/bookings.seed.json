@@ -1,0 +1,22 @@
+[
+  {
+    "bookingReference": "PC-2026-001",
+    "mobileNumber": "0771234567",
+    "patientName": "Priya Fernando"
+  },
+  {
+    "bookingReference": "PC-2026-002",
+    "mobileNumber": "0712345678",
+    "patientName": "Ravi Perera"
+  },
+  {
+    "bookingReference": "PC-2026-003",
+    "mobileNumber": "0765432109",
+    "patientName": "Nimali Jayawardena"
+  },
+  {
+    "bookingReference": "PC-2025-104",
+    "mobileNumber": "0781122334",
+    "patientName": "Kamal Silva"
+  }
+]
