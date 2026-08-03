@@ -102,6 +102,7 @@ export function isPatientFormValid(errors: PatientFormErrors): boolean {
 /** Human-readable reason the confirm button stays disabled. */
 export function getBookingBlockMessage(options: {
   hasSelectedSlot: boolean;
+  hasPaymentMethod?: boolean;
   errors: PatientFormErrors;
   pendingProfileAcceptance?: boolean;
 }): string | null {
@@ -114,7 +115,13 @@ export function getBookingBlockMessage(options: {
   const messages = Object.values(options.errors).filter(
     (message): message is string => Boolean(message),
   );
-  return messages[0] ?? null;
+  if (messages[0]) {
+    return messages[0];
+  }
+  if (options.hasPaymentMethod === false) {
+    return "Select a payment method to continue.";
+  }
+  return null;
 }
 
 export { normalizeMobile, SL_MOBILE_PATTERN };

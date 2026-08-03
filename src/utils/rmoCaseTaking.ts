@@ -4,6 +4,27 @@ export const RMO_CASE_TAKING_MINUTES = 15;
 /** Extra buffer before case taking (queue, walk to RMO desk). */
 export const RMO_ARRIVAL_BUFFER_MINUTES = 5;
 
+/** RMO case-taking fee charged for first-time patients. */
+export const RMO_CONSULTATION_FEE = 2500;
+
+export interface BookingFeeBreakdown {
+  consultationFee: number;
+  rmoFee: number;
+  total: number;
+}
+
+export function calculateBookingFees(
+  consultationFee: number,
+  requiresRmoFee: boolean,
+): BookingFeeBreakdown {
+  const rmoFee = requiresRmoFee ? RMO_CONSULTATION_FEE : 0;
+  return {
+    consultationFee,
+    rmoFee,
+    total: consultationFee + rmoFee,
+  };
+}
+
 export interface RmoCaseTakingInfo {
   requiresRmoCaseTaking: boolean;
   rmoCaseTakingMinutes: number;

@@ -22,7 +22,7 @@ import {
 } from "../components/ui/Skeleton";
 import { useDiscoverSessions } from "../hooks/useDiscoverSessions";
 import { useIncrementalReveal } from "../hooks/useIncrementalReveal";
-import type { SessionTimeSlot } from "../types/channeling";
+import type { ChannelingPaymentMethod, SessionTimeSlot } from "../types/channeling";
 import { existingPatientToFormData } from "../services/patientService";
 import type {
   ExistingPatientProfile,
@@ -32,6 +32,7 @@ import {
   checkoutChannelingBooking,
   fetchSessionSlots,
   getCheckoutErrorMessage,
+  getPaymentRedirectUrl,
   type ChannelingSessionSlot,
   type ChannelingSession,
 } from "../services/channelingService";
@@ -129,6 +130,9 @@ function ChannelingPage() {
   const [profileLinked, setProfileLinked] = useState(false);
   const [patientLookupSettled, setPatientLookupSettled] = useState(false);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<ChannelingPaymentMethod | null>(
+    null,
+  );
   const [confirmedRmoInfo, setConfirmedRmoInfo] = useState<RmoCaseTakingInfo | null>(
     null,
   );
@@ -290,6 +294,7 @@ function ChannelingPage() {
     setSelectedSlot(null);
     resetPatientBookingState();
     setBookingReference(null);
+    setPaymentMethod(null);
     setConfirmedRmoInfo(null);
     setSubmitError(null);
     setIsSubmitting(false);
@@ -300,6 +305,7 @@ function ChannelingPage() {
     setBookingSession(session);
     setSelectedSlot(null);
     resetPatientBookingState();
+    setPaymentMethod(null);
     setBookingReference(null);
     setConfirmedRmoInfo(null);
     setSubmitError(null);
@@ -325,6 +331,7 @@ function ChannelingPage() {
   const canSubmit =
     bookingSession !== null &&
     selectedSlot !== null &&
+    paymentMethod !== null &&
     isPatientFormValid(validationErrors);
 
   const isNewPatient = isNewPatientBooking(
@@ -368,7 +375,7 @@ function ChannelingPage() {
   const rmoCaseTakingInfo = bookingReference ? confirmedRmoInfo : previewRmoInfo;
 
   const handleConfirmBooking = async () => {
-    if (!bookingSession || !selectedSlot || !canSubmit) {
+    if (!bookingSession || !selectedSlot || !paymentMethod || !canSubmit) {
       return;
     }
 
@@ -381,14 +388,28 @@ function ChannelingPage() {
         throw new Error("Invalid slot id. Please reselect a time slot.");
       }
 
+      const checkoutOrigin = window.location.origin;
       const response = await checkoutChannelingBooking({
         channelSlotId,
         fullName: patient.fullName.trim(),
         mobileNumber: formatMobileForApi(patient.phone),
         nicOrPassport: patient.nic.trim() || undefined,
         existingPatientRegistrationId: patient.existingPatientRegistrationId,
-        paymentMethod: "Cash",
+        paymentMethod,
+        ...(paymentMethod === "Card"
+          ? {
+              returnUrl: `${checkoutOrigin}/channeling?payment=success`,
+              cancelUrl: `${checkoutOrigin}/channeling?payment=cancelled`,
+            }
+          : {}),
       });
+
+      const paymentRedirectUrl =
+        paymentMethod === "Card" ? getPaymentRedirectUrl(response) : null;
+      if (paymentRedirectUrl) {
+        window.location.assign(paymentRedirectUrl);
+        return;
+      }
 
       const doctorTime = selectedSlot.time || bookingSession.startTime;
       const rmoInfo = resolveRmoCaseTakingInfo({
@@ -492,6 +513,8 @@ function ChannelingPage() {
     onDetectedPatientChange: setDetectedPatient,
     onPatientLookupSettledChange: setPatientLookupSettled,
     onUseExistingProfile: handleUseExistingProfile,
+    paymentMethod,
+    onPaymentMethodChange: setPaymentMethod,
     onSubmit: handleConfirmBooking,
     onClose: handleCloseBooking,
   };

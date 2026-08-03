@@ -90,6 +90,10 @@ export interface ChannelingBookingCheckoutResponse {
   rmoCaseTakingMinutes?: number;
   doctorAppointmentTime?: string;
   recommendedArrivalTime?: string;
+  paymentUrl?: string;
+  redirectUrl?: string;
+  checkoutUrl?: string;
+  gatewayUrl?: string;
   [key: string]: unknown;
 }
 
@@ -211,6 +215,25 @@ export async function checkoutChannelingBooking(
     payload,
   );
   return data;
+}
+
+const PAYMENT_REDIRECT_KEYS = [
+  "paymentUrl",
+  "redirectUrl",
+  "checkoutUrl",
+  "gatewayUrl",
+] as const;
+
+export function getPaymentRedirectUrl(
+  response: ChannelingBookingCheckoutResponse,
+): string | null {
+  for (const key of PAYMENT_REDIRECT_KEYS) {
+    const value = response[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
 }
 
 export function getCheckoutErrorMessage(err: unknown, fallback: string): string {

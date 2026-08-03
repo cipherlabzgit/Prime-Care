@@ -1,5 +1,6 @@
 import type { ChannelingSession } from "../../services/channelingService";
-import type { SessionTimeSlot } from "../../types/channeling";
+import type { ChannelingPaymentMethod, SessionTimeSlot } from "../../types/channeling";
+import { PAYMENT_METHOD_LABELS } from "../../types/channeling";
 import type {
   ExistingPatientProfile,
   PatientFormData,
@@ -12,10 +13,13 @@ import {
 } from "../../utils/channelingUtils";
 import { getSessionDoctorName } from "../../utils/doctorDisplayUtils";
 import type { RmoCaseTakingInfo } from "../../utils/rmoCaseTaking";
+import { calculateBookingFees } from "../../utils/rmoCaseTaking";
 import { getBookingBlockMessage } from "../../utils/patientValidation";
 import Button from "../ui/Button";
+import BookingFeeBreakdown from "./BookingFeeBreakdown";
 import BookingPatientSection from "./BookingPatientSection";
 import NewPatientRmoNotice from "./NewPatientRmoNotice";
+import PaymentMethodPicker from "./PaymentMethodPicker";
 import SlotPicker from "./SlotPicker";
 
 interface ChannelingBookingPanelProps {
@@ -34,6 +38,8 @@ interface ChannelingBookingPanelProps {
   detectedPatient: ExistingPatientProfile | null;
   profileLinked: boolean;
   pendingProfileAcceptance?: boolean;
+  paymentMethod: ChannelingPaymentMethod | null;
+  onPaymentMethodChange: (method: ChannelingPaymentMethod) => void;
   onChange: (patch: Partial<PatientFormData>) => void;
   onDetectedPatientChange: (patient: ExistingPatientProfile | null) => void;
   onPatientLookupSettledChange?: (settled: boolean) => void;
@@ -115,11 +121,14 @@ function BookingStepper({
 function BookingSummaryStrip({
   session,
   selectedSlot,
+  requiresRmoFee,
 }: {
   session: ChannelingSession;
   selectedSlot: SessionTimeSlot | null;
+  requiresRmoFee: boolean;
 }) {
   const doctorName = getSessionDoctorName(session);
+  const fees = calculateBookingFees(session.consultationFee, requiresRmoFee);
   const initials = doctorName
     .split(/\s+/)
     .filter(Boolean)
@@ -157,8 +166,11 @@ function BookingSummaryStrip({
         </div>
       </div>
       <div className="booking-summary-strip__fee">
-        <span>Fee</span>
-        <strong>{formatFee(session.consultationFee)}</strong>
+        <span>{requiresRmoFee ? "Total" : "Fee"}</span>
+        <strong>{formatFee(fees.total)}</strong>
+        {requiresRmoFee ? (
+          <span className="booking-summary-strip__fee-note">incl. RMO fee</span>
+        ) : null}
       </div>
     </div>
   );
@@ -180,6 +192,8 @@ function ChannelingBookingPanel({
   detectedPatient,
   profileLinked,
   pendingProfileAcceptance = false,
+  paymentMethod,
+  onPaymentMethodChange,
   onChange,
   onDetectedPatientChange,
   onPatientLookupSettledChange,
@@ -188,11 +202,16 @@ function ChannelingBookingPanel({
   onClose,
 }: ChannelingBookingPanelProps) {
   const confirmed = bookingReference !== null;
+  const requiresRmoFee = rmoCaseTakingInfo !== null;
+
+  const detailsComplete =
+    selectedSlot !== null && Object.keys(errors).length === 0;
 
   const blockMessage =
     !confirmed && !canSubmit && !isSubmitting
       ? getBookingBlockMessage({
           hasSelectedSlot: selectedSlot !== null,
+          hasPaymentMethod: paymentMethod !== null,
           errors,
           pendingProfileAcceptance,
         })
@@ -210,7 +229,7 @@ function ChannelingBookingPanel({
     if (confirmed) return true;
     if (stepId === 1) return true;
     if (stepId === 2) return selectedSlot !== null;
-    if (stepId === 3) return canSubmit;
+    if (stepId === 3) return detailsComplete;
     return false;
   };
 
@@ -258,6 +277,17 @@ function ChannelingBookingPanel({
               <span>Reference</span>
               <strong>{bookingReference}</strong>
             </div>
+            {paymentMethod ? (
+              <div className="booking-confirmation__payment">
+                <span>Payment</span>
+                <strong>{PAYMENT_METHOD_LABELS[paymentMethod]}</strong>
+              </div>
+            ) : null}
+            <BookingFeeBreakdown
+              consultationFee={session.consultationFee}
+              requiresRmoFee={requiresRmoFee}
+              variant="confirmation"
+            />
             {rmoCaseTakingInfo ? (
               <div className="booking-confirmation__notice">
                 <NewPatientRmoNotice info={rmoCaseTakingInfo} variant="confirmation" compact />
@@ -272,7 +302,11 @@ function ChannelingBookingPanel({
           </div>
         ) : (
           <>
-            <BookingSummaryStrip session={session} selectedSlot={selectedSlot} />
+            <BookingSummaryStrip
+              session={session}
+              selectedSlot={selectedSlot}
+              requiresRmoFee={requiresRmoFee}
+            />
 
             <section className="booking-section-card" aria-labelledby="slot-picker-heading">
               <div className="booking-section-card__head">
@@ -326,6 +360,29 @@ function ChannelingBookingPanel({
               />
             </section>
 
+            <section className="booking-section-card" aria-labelledby="payment-method-heading">
+              <div className="booking-section-card__head">
+                <span className="booking-section-card__step" aria-hidden="true">
+                  4
+                </span>
+                <div>
+                  <h3 id="payment-method-heading" className="booking-section-card__title">
+                    Payment method
+                  </h3>
+                  <p className="booking-section-card__hint">
+                    {paymentMethod
+                      ? `Selected: ${PAYMENT_METHOD_LABELS[paymentMethod]}`
+                      : "Choose how you would like to pay"}
+                  </p>
+                </div>
+              </div>
+              <PaymentMethodPicker
+                value={paymentMethod}
+                onChange={onPaymentMethodChange}
+                disabled={isSubmitting}
+              />
+            </section>
+
             {rmoCaseTakingInfo ? (
               <NewPatientRmoNotice info={rmoCaseTakingInfo} variant="warning" compact />
             ) : null}
@@ -341,10 +398,10 @@ function ChannelingBookingPanel({
 
       {!confirmed ? (
         <footer className="booking-panel__footer">
-          <div className="booking-panel__footer-total">
-            <span>Consultation fee</span>
-            <strong>{formatFee(session.consultationFee)}</strong>
-          </div>
+          <BookingFeeBreakdown
+            consultationFee={session.consultationFee}
+            requiresRmoFee={requiresRmoFee}
+          />
           {blockMessage ? (
             <p className="booking-panel__footer-hint" role="status">
               {blockMessage}

@@ -1351,6 +1351,62 @@ p {
   color: #026469;
 }
 
+.booking-fee-breakdown {
+  margin: 0 0 0.65rem;
+  padding: 0;
+}
+
+.booking-fee-breakdown--confirmation {
+  margin-top: 0.65rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.85rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.booking-fee-breakdown__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.2rem 0;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.booking-fee-breakdown__row dt {
+  margin: 0;
+  font-weight: 600;
+}
+
+.booking-fee-breakdown__row dd {
+  margin: 0;
+  font-weight: 700;
+  color: #334155;
+}
+
+.booking-fee-breakdown__row--total {
+  margin-top: 0.35rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgba(3, 152, 158, 0.15);
+  font-size: 0.82rem;
+}
+
+.booking-fee-breakdown__row--total dt,
+.booking-fee-breakdown__row--total dd {
+  font-weight: 800;
+  color: #026469;
+}
+
+.booking-fee-breakdown__row--total dd {
+  font-size: 1.05rem;
+}
+
+.booking-fee-breakdown--confirmation .booking-fee-breakdown__row--total dd {
+  font-size: 1rem;
+}
+
 .booking-panel__footer-hint {
   margin: 0 0 0.55rem;
   padding: 0.55rem 0.65rem;
@@ -1473,6 +1529,16 @@ p {
   color: #026469;
 }
 
+.booking-summary-strip__fee-note {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 /* Booking section cards */
 .booking-section-card {
   padding: 0.85rem;
@@ -1515,6 +1581,108 @@ p {
   font-size: 0.72rem;
   color: #64748b;
   line-height: 1.35;
+}
+
+/* Payment method picker */
+.payment-method-picker {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.payment-method-picker__legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.payment-method-picker__grid {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.payment-method-picker__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.85rem;
+  background: #f8fafc;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.payment-method-picker__option:hover:not(:disabled) {
+  border-color: rgba(3, 152, 158, 0.45);
+  background: #f0fdfa;
+}
+
+.payment-method-picker__option--selected {
+  border-color: #026469;
+  background: linear-gradient(135deg, rgba(3, 152, 158, 0.08), rgba(2, 100, 105, 0.04));
+  box-shadow: 0 8px 20px -16px rgba(3, 152, 158, 0.55);
+}
+
+.payment-method-picker__option:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(3, 152, 158, 0.25);
+}
+
+.payment-method-picker__option:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.payment-method-picker__icon {
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.payment-method-picker__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.payment-method-picker__title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.payment-method-picker__desc {
+  font-size: 0.72rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.payment-method-picker__radio {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.1rem;
+  border: 2px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.payment-method-picker__radio--selected {
+  border-color: #026469;
+  box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 6px #026469;
 }
 
 /* Slot picker */
@@ -1780,6 +1948,32 @@ p {
   font-weight: 800;
   color: #92400e;
   word-break: break-all;
+}
+
+.booking-confirmation__payment {
+  margin-top: 0.65rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.85rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  text-align: left;
+}
+
+.booking-confirmation__payment span {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.booking-confirmation__payment strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0f172a;
 }
 
 .booking-confirmation__notice {
