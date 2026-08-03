@@ -1,6 +1,17 @@
 import axios from "axios";
 
-export const CHANNELING_API_ORIGIN = "http://localhost:7000";
+const DEFAULT_CHANNELING_API_ORIGIN = "http://localhost:7000";
+
+function resolveApiOrigin(value: string | undefined, fallback: string): string {
+  const trimmed = value?.trim();
+  return (trimmed && trimmed.length > 0 ? trimmed : fallback).replace(/\/+$/, "");
+}
+
+/** Gateway origin without trailing slash — paths include `/api/...`. */
+export const CHANNELING_API_ORIGIN = resolveApiOrigin(
+  import.meta.env.VITE_CHANNELING_API_ORIGIN,
+  DEFAULT_CHANNELING_API_ORIGIN,
+);
 
 const DISCOVER_URL =
   `${CHANNELING_API_ORIGIN}/api/channeling/public/discover`;
