@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import PremierCareLogo from "./branding/PremierCareLogo";
+import { CHANNELING_BOOKING_URL } from "../utils/bookingNavigation";
 import "../styles/navbar.css";
 
 const navItems = [
@@ -11,6 +12,27 @@ const navItems = [
   { label: "Channeling", to: "/channeling" },
   { label: "Contact", to: "/contact" },
 ] as const;
+
+function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <ul className="navbar__links">
+      {navItems.map(({ label, to }) => (
+        <li key={to}>
+          <NavLink
+            to={to}
+            className={({ isActive }) =>
+              `navbar__link${isActive ? " navbar__link--active" : ""}`
+            }
+            end={to === "/"}
+            onClick={onNavigate}
+          >
+            {label}
+          </NavLink>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -30,81 +52,75 @@ function Navbar() {
     };
   }, [menuOpen]);
 
+  const closeMenu = () => setMenuOpen(false);
+
   return (
-    <header className="navbar">
-      <Link
-        to="/"
-        className="navbar__logo"
-        onClick={() => setMenuOpen(false)}
-        aria-label="PremierCare — Home"
-      >
-        <PremierCareLogo context="header" showTagline />
-      </Link>
-
-      <button
-        type="button"
-        className="navbar__menu-btn"
-        aria-expanded={menuOpen}
-        aria-controls="main-navigation"
-        aria-label={menuOpen ? "Close menu" : "Open menu"}
-        onClick={() => setMenuOpen((open) => !open)}
-      >
-        <span className={`navbar__menu-icon${menuOpen ? " navbar__menu-icon--open" : ""}`} />
-      </button>
-
-      <nav
-        id="main-navigation"
-        className={`navbar__nav${menuOpen ? " navbar__nav--open" : ""}`}
-        aria-label="Main navigation"
-      >
-        <ul className="navbar__links">
-          {navItems.map(({ label, to }) => (
-            <li key={to}>
-              {to.includes("#") ? (
-                <a
-                  href={to}
-                  className="navbar__link"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {label}
-                </a>
-              ) : (
-                <NavLink
-                  to={to}
-                  className={({ isActive }) =>
-                    `navbar__link${isActive ? " navbar__link--active" : ""}`
-                  }
-                  end={to === "/"}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {label}
-                </NavLink>
-              )}
-            </li>
-          ))}
-        </ul>
+    <>
+      <header className="navbar">
         <Link
-          to="/channeling"
+          to="/"
+          className="navbar__logo"
+          onClick={closeMenu}
+          aria-label="PremierCare — Home"
+        >
+          <PremierCareLogo context="header" showTagline />
+        </Link>
+
+        <button
+          type="button"
+          className="navbar__menu-btn"
+          aria-expanded={menuOpen}
+          aria-controls="main-navigation-mobile"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          <span
+            className={`navbar__menu-icon${menuOpen ? " navbar__menu-icon--open" : ""}`}
+          />
+        </button>
+
+        <nav
+          className="navbar__nav navbar__nav--desktop"
+          aria-label="Main navigation"
+        >
+          <NavLinks />
+        </nav>
+
+        <Link to={CHANNELING_BOOKING_URL} className="navbar__cta navbar__cta--desktop">
+          Book Appointment
+        </Link>
+      </header>
+
+      {/*
+        Mobile overlay is a sibling of the sticky header (not a child) so
+        position:fixed is relative to the viewport. Nested fixed + backdrop-filter
+        on iOS Safari otherwise traps the menu inside the header bar.
+      */}
+      <nav
+        id="main-navigation-mobile"
+        className={`navbar__nav navbar__nav--mobile${menuOpen ? " navbar__nav--open" : ""}`}
+        aria-label="Main navigation"
+        aria-hidden={!menuOpen}
+      >
+        <NavLinks onNavigate={closeMenu} />
+        <Link
+          to={CHANNELING_BOOKING_URL}
           className="navbar__cta navbar__cta--mobile"
-          onClick={() => setMenuOpen(false)}
+          onClick={closeMenu}
         >
           Book Appointment
         </Link>
       </nav>
-
-      <Link to="/channeling" className="navbar__cta navbar__cta--desktop">
-        Book Appointment
-      </Link>
 
       {menuOpen ? (
         <button
           type="button"
           className="navbar__backdrop"
           aria-label="Close menu"
-          onClick={() => setMenuOpen(false)}
+          onClick={closeMenu}
         />
       ) : null}
-    </header>
+    </>
   );
 }
 

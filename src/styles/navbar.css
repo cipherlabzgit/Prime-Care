@@ -1,14 +1,15 @@
 .navbar {
   position: sticky;
   top: 0;
-  z-index: 100;
+  /* Above the mobile overlay so logo + close control stay clickable */
+  z-index: 120;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   padding: 1.15rem 1.25rem;
   border-bottom: 1px solid rgba(3, 152, 158, 0.12);
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -97,8 +98,12 @@
   transform: rotate(-45deg);
 }
 
-.navbar__nav {
+.navbar__nav--desktop {
   display: contents;
+}
+
+.navbar__nav--mobile {
+  display: none;
 }
 
 .navbar__links {
@@ -169,7 +174,11 @@
     display: none;
   }
 
-  .navbar__nav {
+  .navbar__nav--desktop {
+    display: none;
+  }
+
+  .navbar__nav--mobile {
     display: flex;
     position: fixed;
     inset: 0;
@@ -180,34 +189,37 @@
     padding: 5.5rem 1.25rem 2rem;
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     transform: translateX(100%);
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transition:
       transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
       opacity 0.35s ease,
       visibility 0.35s ease;
-    z-index: 101;
+    z-index: 110;
   }
 
-  .navbar__nav--open {
+  .navbar__nav--mobile.navbar__nav--open {
     transform: translateX(0);
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
   }
 
-  .navbar__links {
+  .navbar__nav--mobile .navbar__links {
     flex-direction: column;
     align-items: stretch;
     gap: 0;
     width: 100%;
   }
 
-  .navbar__links li {
+  .navbar__nav--mobile .navbar__links li {
     border-bottom: 1px solid rgba(3, 152, 158, 0.1);
   }
 
-  .navbar__link {
+  .navbar__nav--mobile .navbar__link {
     display: block;
     padding: 0.95rem 0.25rem;
     font-size: 1rem;
@@ -225,7 +237,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: 105;
     border: none;
     background: rgba(15, 23, 42, 0.35);
     cursor: pointer;

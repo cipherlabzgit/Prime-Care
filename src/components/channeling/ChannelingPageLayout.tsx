@@ -6,26 +6,14 @@ import ChannelingStatsBar from "./ChannelingStatsBar";
 
 interface ChannelingPageLayoutProps {
   children: ReactNode;
-  doctorCount: number;
-  centerCount: number;
-  sessionCount: number;
 }
 
-function ChannelingPageLayout({
-  children,
-  doctorCount,
-  centerCount,
-  sessionCount,
-}: ChannelingPageLayoutProps) {
+function ChannelingPageLayout({ children }: ChannelingPageLayoutProps) {
   return (
     <div className="channeling-page flex min-h-svh flex-col bg-gradient-to-b from-brand-50/60 via-slate-50/80 to-white text-left">
       <Navbar />
       <ChannelingHero />
-      <ChannelingStatsBar
-        doctorCount={doctorCount}
-        centerCount={centerCount}
-        sessionCount={sessionCount}
-      />
+      <ChannelingStatsBar />
 
       <div className="channeling-page__body relative flex-1">
         <div

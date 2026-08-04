@@ -29,7 +29,7 @@ function FooterLinkItem({ href, label }: { href: string; label: string }) {
 
 function SiteFooter() {
   return (
-    <footer className="site-footer" id="contact">
+    <footer className="site-footer" id="site-footer">
       <div className="site-footer__stats" aria-label="PremierCare trust statistics">
         {footerTrustStats.map((stat) => (
           <div key={stat.label} className="site-footer__stat">

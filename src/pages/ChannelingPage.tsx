@@ -142,7 +142,10 @@ function ChannelingPage() {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [scrolledToSessions, setScrolledToSessions] = useState(false);
   const sessionsSectionRef = useRef<HTMLElement>(null);
+  const bookingSectionRef = useRef<HTMLDivElement>(null);
+  const bookingPanelRef = useRef<HTMLDivElement>(null);
   const appliedDeepLinkRef = useRef<string | null>(null);
+  const hasScrolledToBookingSectionRef = useRef(false);
 
   const doctorIdParam = searchParams.get("doctorId");
 
@@ -181,6 +184,62 @@ function ChannelingPage() {
 
     return () => window.clearTimeout(timer);
   }, [hasSearched, doctorIdParam, scrolledToSessions, loading]);
+
+  useEffect(() => {
+    if (loading || hasScrolledToBookingSectionRef.current) return;
+
+    const hash = window.location.hash.replace("#", "");
+
+    if (hash === "doctor-sessions") {
+      hasScrolledToBookingSectionRef.current = true;
+      const timer = window.setTimeout(() => {
+        sessionsSectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 200);
+      return () => window.clearTimeout(timer);
+    }
+
+    if (hash === "channeling-booking") {
+      hasScrolledToBookingSectionRef.current = true;
+      const timer = window.setTimeout(() => {
+        bookingSectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 200);
+      return () => window.clearTimeout(timer);
+    }
+
+    if (doctorIdParam) return;
+
+    hasScrolledToBookingSectionRef.current = true;
+    const timer = window.setTimeout(() => {
+      bookingSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 200);
+
+    return () => window.clearTimeout(timer);
+  }, [loading, doctorIdParam]);
+
+  useEffect(() => {
+    if (!bookingSession) return;
+
+    const timer = window.setTimeout(() => {
+      const isMobile = window.matchMedia("(max-width: 1023px)").matches;
+      if (isMobile) {
+        bookingPanelRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 150);
+
+    return () => window.clearTimeout(timer);
+  }, [bookingSession]);
 
   useEffect(() => {
     if (!bookingSession || allSessions.length === 0) return;
@@ -520,11 +579,7 @@ function ChannelingPage() {
   };
 
   return (
-    <ChannelingPageLayout
-      doctorCount={filterDoctors.length}
-      centerCount={centers.length}
-      sessionCount={allSessions.length}
-    >
+    <ChannelingPageLayout>
       {loading && (
         <div className={gridClass}>
           <div className="lg:col-span-1">
@@ -554,7 +609,11 @@ function ChannelingPage() {
 
       {!loading && !error && (
         <>
-        <div className={gridClass}>
+        <div
+          ref={bookingSectionRef}
+          id="channeling-booking"
+          className={`${gridClass} scroll-mt-24`}
+        >
           <div className="lg:col-span-1">
             <ChannelingFilters
               filters={filters}
@@ -723,7 +782,11 @@ function ChannelingPage() {
           </div>
 
           {bookingSession ? (
-            <div className="scroll-mt-24 lg:hidden">
+            <div
+              ref={bookingPanelRef}
+              id="channeling-booking-panel"
+              className="scroll-mt-24 lg:hidden"
+            >
               <ChannelingBookingPanel {...bookingPanelProps} />
             </div>
           ) : null}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { homeopathyDisclaimer } from "../../data/servicesData";
+import { CHANNELING_BOOKING_URL } from "../../utils/bookingNavigation";
 import type { ClinicalService } from "../../types/service";
 import ScrollReveal from "../home/ScrollReveal";
 
@@ -101,12 +101,7 @@ function ServiceDetailSection({ service, index }: ServiceDetailSectionProps) {
           </div>
 
           <footer className="service-detail__footer">
-            {service.slug === "homeopathy" ? (
-              <p className="service-detail__disclaimer" role="note">
-                {homeopathyDisclaimer}
-              </p>
-            ) : null}
-            <Link to="/channeling" className="home-btn home-btn--primary service-detail__cta">
+            <Link to={CHANNELING_BOOKING_URL} className="home-btn home-btn--primary service-detail__cta">
               {service.slug === "corporate-healthcare"
                 ? "Talk to Us About Your Organization"
                 : "Book Appointment"}

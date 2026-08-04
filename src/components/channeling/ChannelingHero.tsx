@@ -41,9 +41,9 @@ function HealthcareIllustration() {
 }
 
 const trustItems = [
-  { value: "50+", label: "Specialist Doctors" },
-  { value: "10+", label: "Medical Centers" },
-  { value: "24/7", label: "Online Booking" },
+  { value: "Live", label: "Session Search" },
+  { value: "Fast", label: "Online Booking" },
+  { value: "24/7", label: "Available" },
 ] as const;
 
 function ChannelingHero() {
@@ -52,7 +52,7 @@ function ChannelingHero() {
       <div className="channeling-hero__pattern pointer-events-none absolute inset-0" aria-hidden="true" />
       <div className="channeling-hero__overlay pointer-events-none absolute inset-0" aria-hidden="true" />
 
-      <div className="relative mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10 lg:flex-row lg:items-center lg:justify-between lg:gap-10 lg:px-8">
+      <div className="relative mx-auto flex max-w-7xl flex-col gap-6 px-4 pt-8 pb-12 sm:px-6 sm:pt-10 sm:pb-14 lg:flex-row lg:items-center lg:justify-between lg:gap-10 lg:px-8">
         <div className="channeling-hero__content max-w-2xl animate-fade-in-up">
           <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white/95 backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden="true" />
@@ -62,11 +62,12 @@ function ChannelingHero() {
             Book Your Appointment
           </h1>
           <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/85 sm:text-base">
-            Search live hospital sessions, choose your preferred time slot, and
-            complete your booking in minutes — trusted by thousands of patients.
+            Search live clinic sessions, choose your preferred time slot, and
+            complete your booking in minutes — simple online channeling for
+            PremierCare.
           </p>
 
-          <ul className="mt-6 flex flex-wrap gap-3 sm:gap-4" aria-label="Trust indicators">
+          <ul className="mt-6 flex flex-wrap gap-2.5 sm:gap-3" aria-label="Booking highlights">
             {trustItems.map((item) => (
               <li
                 key={item.label}

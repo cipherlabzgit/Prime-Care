@@ -183,6 +183,3 @@ export function getHomeServiceCards(): Pick<
     icon,
   }));
 }
-
-export const homeopathyDisclaimer =
-  "Homeopathic care is individualized and should be discussed with a qualified practitioner. Patients should not discontinue prescribed conventional medication or delay emergency medical treatment without consulting an appropriate healthcare professional.";
