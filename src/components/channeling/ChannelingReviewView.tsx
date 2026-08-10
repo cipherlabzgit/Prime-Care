@@ -1,6 +1,7 @@
 import type { ChannelingSession } from "../../services/channelingService";
 import type { SessionTimeSlot } from "../../types/channeling";
 import type { PatientFormData } from "../../types/patient";
+import { getPatientFullName } from "../../types/patient";
 import { formatFee, formatTime } from "../../utils/channelingUtils";
 import {
   calculateBookingFees,
@@ -72,7 +73,7 @@ function ChannelingReviewView({
 
         <dl className="channeling-review-details">
           <DetailRow label="Reference No" value={provisionalRef} />
-          <DetailRow label="Patient's Name" value={patient.fullName} />
+          <DetailRow label="Patient's Name" value={getPatientFullName(patient)} />
           <DetailRow label="Phone" value={patient.phone} />
           <DetailRow label="NIC" value={patient.nic} />
           <DetailRow label="Email" value={patient.email || "—"} />

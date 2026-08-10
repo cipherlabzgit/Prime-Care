@@ -3309,6 +3309,10 @@ p {
   align-items: center;
 }
 
+.patient-form__line-split--name {
+  grid-template-columns: 4.25rem minmax(0, 1fr) minmax(0, 1fr);
+}
+
 .patient-form__line-control--title {
   font-weight: 700;
   color: #027e83;
@@ -3436,6 +3440,10 @@ p {
 
   .patient-form__line-split {
     grid-template-columns: 3.75rem minmax(0, 1fr);
+  }
+
+  .patient-form__line-split--name {
+    grid-template-columns: 3.5rem minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .patient-form__id-type,

@@ -26,6 +26,7 @@ import type {
   ExistingPatientProfile,
   PatientFormData,
 } from "../types/patient";
+import { getPatientFullName } from "../types/patient";
 import {
   checkoutChannelingBooking,
   fetchSessionSlots,
@@ -75,7 +76,9 @@ const emptyFilters: Filters = {
 };
 
 const emptyPatient: PatientFormData = {
-  fullName: "",
+  title: "Mr.",
+  firstName: "",
+  lastName: "",
   nic: "",
   phone: "",
   email: "",
@@ -765,7 +768,7 @@ function ChannelingPage() {
       const checkoutOrigin = window.location.origin;
       const response = await checkoutChannelingBooking({
         channelSlotId,
-        fullName: patient.fullName.trim(),
+        fullName: getPatientFullName(patient),
         mobileNumber: formatMobileForApi(patient.phone),
         nicOrPassport: patient.nic.trim() || undefined,
         existingPatientRegistrationId: patient.existingPatientRegistrationId,

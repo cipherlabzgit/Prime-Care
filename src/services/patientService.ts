@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { ExistingPatientProfile, PatientFormData } from "../types/patient";
+import { splitPatientFullName } from "../types/patient";
 import { formatPhoneForLookup } from "../utils/patientValidation";
 import { CHANNELING_API_ORIGIN } from "./channelingService";
 
@@ -101,8 +102,11 @@ export function existingPatientToFormData(
   profile: ExistingPatientProfile,
   notes = "",
 ): PatientFormData {
+  const { firstName, lastName } = splitPatientFullName(profile.fullName);
   return {
-    fullName: profile.fullName,
+    title: "Mr.",
+    firstName,
+    lastName,
     nic: profile.nic ?? "",
     phone: profile.mobileNumber,
     email: profile.email ?? "",

@@ -1,7 +1,7 @@
-import { useState } from "react";
 import type { FormEvent } from "react";
 import type { PatientFormData, PatientFormErrors } from "../../types/patient";
 import Button from "../ui/Button";
+import { useState } from "react";
 
 type IdType = "nic" | "passport";
 
@@ -35,7 +35,6 @@ function ChannelingPatientForm({
   hideSubmit = false,
   hideHeading = false,
 }: ChannelingPatientFormProps) {
-  const [title, setTitle] = useState<string>("Mr.");
   const [idType, setIdType] = useState<IdType>("nic");
 
   const handleSubmit = (e: FormEvent) => {
@@ -44,6 +43,7 @@ function ChannelingPatientForm({
   };
 
   const fieldDisabled = disabled || profileLinked;
+  const nameError = errors.firstName || errors.lastName;
 
   return (
     <form className="patient-form patient-form--doc" onSubmit={handleSubmit} noValidate>
@@ -85,16 +85,16 @@ function ChannelingPatientForm({
         <span className="patient-form__line-icon" aria-hidden="true">
           👤
         </span>
-        <label className="patient-form__line-label" htmlFor="pt-title">
+        <label className="patient-form__line-label" htmlFor="pt-first-name">
           Name
         </label>
-        <div className="patient-form__line-split">
+        <div className="patient-form__line-split patient-form__line-split--name">
           <select
             id="pt-title"
             className="patient-form__line-control patient-form__line-control--title"
-            value={title}
+            value={patient.title || "Mr."}
             disabled={fieldDisabled}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => onChange({ title: e.target.value })}
             aria-label="Title"
           >
             {TITLE_OPTIONS.map((option) => (
@@ -104,19 +104,32 @@ function ChannelingPatientForm({
             ))}
           </select>
           <input
-            id="pt-name"
+            id="pt-first-name"
             className={`patient-form__line-control${
-              errors.fullName ? " patient-form__line-control--invalid" : ""
+              errors.firstName ? " patient-form__line-control--invalid" : ""
             }`}
-            value={patient.fullName}
+            value={patient.firstName}
             disabled={fieldDisabled}
             readOnly={profileLinked}
-            placeholder="Name - Required"
-            onChange={(e) => onChange({ fullName: e.target.value })}
+            placeholder="First name"
+            autoComplete="given-name"
+            onChange={(e) => onChange({ firstName: e.target.value })}
+          />
+          <input
+            id="pt-last-name"
+            className={`patient-form__line-control${
+              errors.lastName ? " patient-form__line-control--invalid" : ""
+            }`}
+            value={patient.lastName}
+            disabled={fieldDisabled}
+            readOnly={profileLinked}
+            placeholder="Second name"
+            autoComplete="family-name"
+            onChange={(e) => onChange({ lastName: e.target.value })}
           />
         </div>
       </div>
-      <FieldError message={errors.fullName} />
+      <FieldError message={nameError} />
 
       <div className="patient-form__line patient-form__line--split">
         <span className="patient-form__line-icon" aria-hidden="true">

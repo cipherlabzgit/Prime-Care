@@ -55,7 +55,8 @@ export function validatePatientForm(
 ): PatientFormErrors {
   if (options?.pendingProfileAcceptance) {
     return {
-      fullName: "Use your existing profile to continue, or update NIC/mobile if this is not you.",
+      firstName:
+        "Use your existing profile to continue, or update NIC/mobile if this is not you.",
     };
   }
 
@@ -69,10 +70,16 @@ export function validatePatientForm(
 
   const errors: PatientFormErrors = {};
 
-  if (!patient.fullName.trim()) {
-    errors.fullName = "Full name is required.";
-  } else if (patient.fullName.trim().length < 2) {
-    errors.fullName = "Enter your full legal name.";
+  if (!patient.firstName.trim()) {
+    errors.firstName = "First name is required.";
+  } else if (patient.firstName.trim().length < 2) {
+    errors.firstName = "Enter a valid first name.";
+  }
+
+  if (!patient.lastName.trim()) {
+    errors.lastName = "Second name is required.";
+  } else if (patient.lastName.trim().length < 2) {
+    errors.lastName = "Enter a valid second name.";
   }
 
   if (!patient.nic.trim()) {
