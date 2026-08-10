@@ -71,7 +71,11 @@ export function getSlotHoldFailureKind(err: unknown): SlotHoldFailureKind {
 
   // Proxy/server down, timeout, or no response
   if (!err.response) return "unavailable";
-  if ([502, 503, 504].includes(err.response.status)) return "unavailable";
+
+  // Production SPA hosts often return 404/405 when hold API is missing.
+  if ([404, 405, 501, 502, 503, 504].includes(err.response.status)) {
+    return "unavailable";
+  }
 
   const data = err.response.data;
   if (typeof data === "string" && /econnrefused|proxy|bad gateway/i.test(data)) {
@@ -89,7 +93,7 @@ export function getHoldErrorMessage(err: unknown, fallback: string): string {
   }
 
   if (kind === "unavailable") {
-    return "Could not lock this slot right now. Restart the Vite dev server (`npm run dev`) and try again.";
+    return "Could not lock this slot for others right now. You can still continue booking.";
   }
 
   if (axios.isAxiosError(err)) {

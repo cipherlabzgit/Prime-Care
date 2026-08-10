@@ -162,8 +162,8 @@ function ChannelingBookingFormView({
         ) : null}
         {selectedSlot && holdDegraded ? (
           <p className="channeling-booking-form__hold-note channeling-booking-form__hold-note--warn" role="status">
-            Slot selected, but locking failed. Restart Vite (<code>npm run dev</code>)
-            so the slot can be blocked for other patients during your booking timer.
+            Slot selected. Temporary locking is unavailable, so continue promptly
+            to confirm your booking.
           </p>
         ) : null}
         <SlotPicker
