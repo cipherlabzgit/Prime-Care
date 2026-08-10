@@ -4,6 +4,7 @@ import ContactPage from "./pages/ContactPage";
 import HomePage from "./pages/HomePage";
 import ChannelingPage from "./pages/ChannelingPage";
 import DoctorsPage from "./pages/DoctorsPage";
+import MyBookingsPage from "./pages/MyBookingsPage";
 import PatientProfilePage from "./pages/PatientProfilePage";
 import ReceptionDeskPage from "./pages/ReceptionDeskPage";
 import ReviewManagementPage from "./pages/ReviewManagementPage";
@@ -21,6 +22,7 @@ function App() {
         <Route path="/doctors" element={<DoctorsPage />} />
         <Route path="/channeling" element={<ChannelingPage />} />
         <Route path="/book" element={<ChannelingPage />} />
+        <Route path="/my-bookings" element={<MyBookingsPage />} />
         <Route path="/patient/profile" element={<PatientProfilePage />} />
         <Route path="/channeling/reception" element={<ReceptionDeskPage />} />
         <Route path="/channeling/rmo" element={<RmoDeskPage />} />

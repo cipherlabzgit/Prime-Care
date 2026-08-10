@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import type { FormEvent, ReactNode } from "react";
 import type { ChannelingFilters as Filters } from "../../utils/channelingUtils";
 import Button from "../ui/Button";
-import ChannelingSectionHeader from "./ChannelingSectionHeader";
+
+export type ChannelingFiltersVariant = "card" | "bar";
 
 interface ChannelingFiltersProps {
   filters: Filters;
@@ -13,13 +14,16 @@ interface ChannelingFiltersProps {
   onSearch: () => void;
   disabled?: boolean;
   highlightedDoctorId?: string | null;
+  variant?: ChannelingFiltersVariant;
 }
 
-const selectClass =
-  "channeling-filter-input w-full rounded-2xl border border-slate-300/90 bg-white px-3.5 py-3 text-sm font-medium text-slate-900 shadow-sm transition duration-250 hover:border-brand-300 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:opacity-60";
-
-const labelClass =
-  "channeling-filter-label mb-2 block text-[11px] font-extrabold uppercase tracking-wider text-slate-700";
+function FieldIcon({ children }: { children: ReactNode }) {
+  return (
+    <span className="channeling-search-field__icon" aria-hidden="true">
+      {children}
+    </span>
+  );
+}
 
 function ChannelingFilters({
   filters,
@@ -31,93 +35,44 @@ function ChannelingFilters({
   onSearch,
   disabled = false,
   highlightedDoctorId = null,
+  variant = "card",
 }: ChannelingFiltersProps) {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const doctorFieldHighlighted =
     Boolean(highlightedDoctorId) && filters.doctorId === highlightedDoctorId;
+  const isBar = variant === "bar";
 
-  useEffect(() => {
-    if (highlightedDoctorId && window.innerWidth < 1024) {
-      setMobileOpen(true);
-    }
-  }, [highlightedDoctorId]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     onSearch();
-    if (window.innerWidth < 1024) setMobileOpen(false);
   };
 
-  const activeFilterCount = [
-    filters.centerName,
-    filters.specialization,
-    filters.doctorId,
-    filters.date,
-  ].filter(Boolean).length;
-
-  const filterForm = (
-    <form className="channeling-filter-form px-5 py-5" onSubmit={handleSubmit}>
-      <div className="channeling-filter-field">
-        <label htmlFor="ch-center" className={labelClass}>
-          Medical Center
+  const fields = (
+    <>
+      <div
+        className={`channeling-search-field${
+          doctorFieldHighlighted ? " channeling-search-field--highlighted" : ""
+        }`}
+      >
+        <FieldIcon>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a7.5 7.5 0 0115 0"
+            />
+          </svg>
+        </FieldIcon>
+        <label htmlFor="ch-doctor" className="sr-only">
+          Doctor
         </label>
         <select
-          id="ch-center"
-          className={selectClass}
-          value={filters.centerName}
-          disabled={disabled}
-          onChange={(e) => onChange({ centerName: e.target.value })}
-        >
-          <option value="">All centers</option>
-          {centers.map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="channeling-filter-field">
-        <label htmlFor="ch-spec" className={labelClass}>
-          Specialization
-        </label>
-        <select
-          id="ch-spec"
-          className={selectClass}
-          value={filters.specialization}
-          disabled={disabled}
-          onChange={(e) => onChange({ specialization: e.target.value })}
-        >
-          <option value="">All specializations</option>
-          {specializations.map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-        <div
-          className={`channeling-filter-field${
-            doctorFieldHighlighted ? " channeling-filter-field--highlighted" : ""
-          }`}
-        >
-          <label htmlFor="ch-doctor" className={labelClass}>
-            Doctor
-            {doctorFieldHighlighted ? (
-              <span className="channeling-filter-highlight-badge">Selected</span>
-            ) : null}
-          </label>
-          <select
-            id="ch-doctor"
-            className={`${selectClass}${
-              doctorFieldHighlighted ? " channeling-filter-input--highlighted" : ""
-            }`}
+          id="ch-doctor"
+          className="channeling-search-field__control"
           value={filters.doctorId}
           disabled={disabled}
           onChange={(e) => onChange({ doctorId: e.target.value })}
         >
-          <option value="">Any doctor</option>
+          <option value="">Any Doctor</option>
           {doctors.map((d) => (
             <option key={d.doctorId} value={String(d.doctorId)}>
               {d.fullName}
@@ -126,14 +81,81 @@ function ChannelingFilters({
         </select>
       </div>
 
-      <div className="channeling-filter-field">
-        <label htmlFor="ch-date" className={labelClass}>
+      <div className="channeling-search-field">
+        <FieldIcon>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 4.5v15m7.5-7.5h-15"
+            />
+          </svg>
+        </FieldIcon>
+        <label htmlFor="ch-spec" className="sr-only">
+          Specialization
+        </label>
+        <select
+          id="ch-spec"
+          className="channeling-search-field__control"
+          value={filters.specialization}
+          disabled={disabled}
+          onChange={(e) => onChange({ specialization: e.target.value })}
+        >
+          <option value="">Any Specialization</option>
+          {specializations.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="channeling-search-field">
+        <FieldIcon>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M3.75 21h16.5M4.5 21V8.25L12 3l7.5 5.25V21M9 21v-6h6v6"
+            />
+          </svg>
+        </FieldIcon>
+        <label htmlFor="ch-center" className="sr-only">
+          Medical Center
+        </label>
+        <select
+          id="ch-center"
+          className="channeling-search-field__control"
+          value={filters.centerName}
+          disabled={disabled}
+          onChange={(e) => onChange({ centerName: e.target.value })}
+        >
+          <option value="">Any Hospital</option>
+          {centers.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="channeling-search-field">
+        <FieldIcon>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6.75 3v2.25M17.25 3v2.25M3.75 8.25h16.5M5.25 6h13.5A1.5 1.5 0 0120.25 7.5v11.25A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75V7.5A1.5 1.5 0 015.25 6z"
+            />
+          </svg>
+        </FieldIcon>
+        <label htmlFor="ch-date" className="sr-only">
           Date
         </label>
         <input
           id="ch-date"
           type="date"
-          className={selectClass}
+          className="channeling-search-field__control"
           value={filters.date}
           disabled={disabled}
           list="ch-date-options"
@@ -145,61 +167,77 @@ function ChannelingFilters({
           ))}
         </datalist>
       </div>
+    </>
+  );
 
-      <div className="channeling-filter-submit">
+  if (isBar) {
+    return (
+      <section className="channeling-search-bar" aria-label="Search filters">
+        <form className="channeling-search-bar__form" onSubmit={handleSubmit}>
+          {fields}
+          <Button
+            type="submit"
+            variant="accent"
+            disabled={disabled}
+            className="channeling-search-bar__submit"
+          >
+            <svg
+              className="channeling-search-card__submit-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"
+              />
+            </svg>
+            Search
+          </Button>
+        </form>
+      </section>
+    );
+  }
+
+  return (
+    <section
+      className="channeling-search-card"
+      aria-labelledby="channeling-search-title"
+    >
+      <h2 id="channeling-search-title" className="channeling-search-card__title">
+        Channel Your Doctor
+      </h2>
+
+      <form className="channeling-search-card__form" onSubmit={handleSubmit}>
+        {fields}
         <Button
           type="submit"
           variant="accent"
           fullWidth
           disabled={disabled}
-          className="py-3.5 text-sm font-bold shadow-lg shadow-amber-200/50 transition-all duration-250 hover:shadow-xl hover:shadow-amber-200/60"
+          className="channeling-search-card__submit"
         >
-          Search Sessions
-        </Button>
-      </div>
-    </form>
-  );
-
-  return (
-    <aside
-      className="channeling-glass channeling-sticky h-fit overflow-hidden rounded-3xl"
-      aria-label="Search filters"
-    >
-      <div className="channeling-filters-header">
-        <ChannelingSectionHeader
-          step="Step 1"
-          title="Search Filters"
-          subtitle="Find the right session quickly"
-          badge={
-            activeFilterCount > 0 ? (
-              <span className="channeling-active-badge">
-                {activeFilterCount} active
-              </span>
-            ) : undefined
-          }
-        />
-        <button
-          type="button"
-          className="channeling-filters-toggle lg:hidden"
-          aria-expanded={mobileOpen}
-          aria-controls="channeling-filter-panel"
-          onClick={() => setMobileOpen((open) => !open)}
-        >
-          <span>{mobileOpen ? "Hide filters" : "Show filters"}</span>
-          <span
-            className={`channeling-filters-toggle__icon${mobileOpen ? " channeling-filters-toggle__icon--open" : ""}`}
+          <svg
+            className="channeling-search-card__submit-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
             aria-hidden="true"
-          />
-        </button>
-      </div>
-
-      <div
-        id="channeling-filter-panel"
-        className={`channeling-filters-panel${mobileOpen ? " channeling-filters-panel--open" : ""}`}
-      >
-        {filterForm}
-      </div>
-    </aside>
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"
+            />
+          </svg>
+          Search
+        </Button>
+      </form>
+    </section>
   );
 }
 

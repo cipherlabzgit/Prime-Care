@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import PremierCareLogo from "./branding/PremierCareLogo";
-import { CHANNELING_BOOKING_URL } from "../utils/bookingNavigation";
+import { usePatientAuth } from "../context/PatientAuthContext";
+import {
+  CHANNELING_BOOKING_URL,
+  MY_BOOKINGS_URL,
+} from "../utils/bookingNavigation";
 import "../styles/navbar.css";
 
 const navItems = [
@@ -36,6 +40,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { isSignedIn, session, signOut } = usePatientAuth();
 
   useEffect(() => {
     const handleResize = () => {
@@ -86,9 +91,30 @@ function Navbar() {
           <NavLinks />
         </nav>
 
-        <Link to={CHANNELING_BOOKING_URL} className="navbar__cta navbar__cta--desktop">
-          Book Appointment
-        </Link>
+        <div className="navbar__actions navbar__actions--desktop">
+          {isSignedIn && session ? (
+            <div className="navbar__session">
+              <span className="navbar__session-name" title={session.patient.fullName}>
+                {session.patient.fullName.split(" ")[0]}
+              </span>
+              <button
+                type="button"
+                className="navbar__session-out"
+                onClick={() => {
+                  void signOut();
+                }}
+              >
+                Sign out
+              </button>
+            </div>
+          ) : null}
+          <Link to={MY_BOOKINGS_URL} className="navbar__secondary">
+            My Bookings
+          </Link>
+          <Link to={CHANNELING_BOOKING_URL} className="navbar__cta">
+            Book Appointment
+          </Link>
+        </div>
       </header>
 
       {/*
@@ -103,13 +129,36 @@ function Navbar() {
         aria-hidden={!menuOpen}
       >
         <NavLinks onNavigate={closeMenu} />
-        <Link
-          to={CHANNELING_BOOKING_URL}
-          className="navbar__cta navbar__cta--mobile"
-          onClick={closeMenu}
-        >
-          Book Appointment
-        </Link>
+        <div className="navbar__actions navbar__actions--mobile">
+          {isSignedIn && session ? (
+            <div className="navbar__session navbar__session--mobile">
+              <span className="navbar__session-name">{session.patient.fullName}</span>
+              <button
+                type="button"
+                className="navbar__session-out"
+                onClick={() => {
+                  void signOut().then(closeMenu);
+                }}
+              >
+                Sign out
+              </button>
+            </div>
+          ) : null}
+          <Link
+            to={MY_BOOKINGS_URL}
+            className="navbar__secondary"
+            onClick={closeMenu}
+          >
+            My Bookings
+          </Link>
+          <Link
+            to={CHANNELING_BOOKING_URL}
+            className="navbar__cta"
+            onClick={closeMenu}
+          >
+            Book Appointment
+          </Link>
+        </div>
       </nav>
 
       {menuOpen ? (

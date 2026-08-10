@@ -2,31 +2,67 @@ import type { ReactNode } from "react";
 import SiteFooter from "../layout/SiteFooter";
 import Navbar from "../Navbar";
 import ChannelingHero from "./ChannelingHero";
-import ChannelingStatsBar from "./ChannelingStatsBar";
+import ChannelingServiceLinks from "./ChannelingServiceLinks";
+
+export type ChannelingPageMode = "landing" | "results";
 
 interface ChannelingPageLayoutProps {
+  mode?: ChannelingPageMode;
+  searchCard?: ReactNode;
+  searchBar?: ReactNode;
   children: ReactNode;
 }
 
-function ChannelingPageLayout({ children }: ChannelingPageLayoutProps) {
+function ChannelingPageLayout({
+  mode = "landing",
+  searchCard,
+  searchBar,
+  children,
+}: ChannelingPageLayoutProps) {
+  const isResults = mode === "results";
+
   return (
-    <div className="channeling-page flex min-h-svh flex-col bg-gradient-to-b from-brand-50/60 via-slate-50/80 to-white text-left">
+    <div
+      className={`channeling-page flex min-h-svh flex-col text-left${
+        isResults ? " channeling-page--results" : " channeling-page--landing"
+      }`}
+    >
       <Navbar />
-      <ChannelingHero />
-      <ChannelingStatsBar />
+
+      {!isResults ? (
+        <div className="channeling-page__top relative">
+          <ChannelingHero />
+          {searchCard ? (
+            <div className="channeling-page__search relative z-20 mx-auto -mt-16 w-full max-w-xl px-4 sm:-mt-20 sm:px-6 lg:px-8">
+              {searchCard}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {isResults && searchBar ? (
+        <div className="channeling-page__bar sticky top-0 z-30 border-b border-slate-200 bg-white shadow-sm">
+          <div className="mx-auto max-w-7xl px-3 py-3 sm:px-6 lg:px-8">
+            {searchBar}
+          </div>
+        </div>
+      ) : null}
 
       <div className="channeling-page__body relative flex-1">
         <div
-          className="pointer-events-none absolute inset-0 overflow-hidden"
+          className="channeling-page__pattern pointer-events-none absolute inset-0"
           aria-hidden="true"
+        />
+        <div
+          className={`relative mx-auto max-w-7xl px-4 pb-8 sm:px-6 sm:pb-10 lg:px-8 ${
+            isResults ? "pt-5 sm:pt-6" : "pt-8 sm:pt-10"
+          }`}
         >
-          <div className="absolute -left-32 top-20 h-64 w-64 rounded-full bg-brand-200/30 blur-3xl" />
-          <div className="absolute -right-24 bottom-32 h-72 w-72 rounded-full bg-accent-200/25 blur-3xl" />
-        </div>
-        <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           {children}
+          {!isResults ? <ChannelingServiceLinks /> : null}
         </div>
       </div>
+
       <SiteFooter />
     </div>
   );

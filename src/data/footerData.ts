@@ -7,6 +7,7 @@ export const footerQuickLinks = [
   { label: "About Us", href: "/about" },
   { label: "Doctors", href: "/doctors" },
   { label: "Book Appointment", href: "/channeling" },
+  { label: "My Bookings", href: "/my-bookings" },
   { label: "Contact", href: "/contact" },
 ] as const;
 
