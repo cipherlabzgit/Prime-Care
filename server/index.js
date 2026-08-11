@@ -974,6 +974,8 @@ app.post("/api/channeling/holds/reserve", (req, res) => {
       holdToken:
         typeof req.body?.holdToken === "string" ? req.body.holdToken.trim() : "",
       durationSeconds: req.body?.durationSeconds,
+      slotTime:
+        typeof req.body?.slotTime === "string" ? req.body.slotTime : "",
     });
     return res.json(reserved);
   } catch (err) {
@@ -995,7 +997,15 @@ app.post("/api/channeling/holds/release", (req, res) => {
         message: "channelSlotId and holdToken are required.",
       });
     }
-    return res.json(releaseHold({ channelSlotId, holdToken }));
+    return res.json(
+      releaseHold({
+        channelSlotId,
+        holdToken,
+        slotTime:
+          typeof req.body?.slotTime === "string" ? req.body.slotTime : "",
+        sessionId: Number(req.body?.sessionId) || null,
+      }),
+    );
   } catch (err) {
     return res.status(Number(err.status) || 500).json({
       message: err.message || "Hold release failed.",

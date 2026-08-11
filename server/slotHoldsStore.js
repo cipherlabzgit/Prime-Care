@@ -42,17 +42,51 @@ function createHoldToken() {
   return `hold_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function normalizeSlotTime(raw) {
+  if (typeof raw !== "string") return "";
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  const ampm = trimmed.match(/^(\d{1,2}):(\d{2})\s*([AaPp][Mm])$/);
+  if (ampm) {
+    let hour = Number(ampm[1]);
+    const minute = Number(ampm[2]);
+    const period = ampm[3].toUpperCase();
+    if (period === "PM" && hour < 12) hour += 12;
+    if (period === "AM" && hour === 12) hour = 0;
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`;
+  }
+  if (trimmed.length >= 5 && trimmed.includes(":")) {
+    return `${trimmed.slice(0, 5)}:00`;
+  }
+  return trimmed;
+}
+
+function toPublicHold(hold) {
+  return {
+    channelSlotId: Number(hold.channelSlotId),
+    sessionId: Number(hold.sessionId),
+    expiresAt: hold.expiresAt,
+    ...(hold.slotTime ? { slotTime: hold.slotTime } : {}),
+  };
+}
+
+function sameHold(hold, channelSlotId, sessionId, slotTime) {
+  const time = normalizeSlotTime(slotTime);
+  const holdTime = normalizeSlotTime(hold.slotTime || "");
+  // Prefer clock-time identity so duplicate ERP slot ids cannot block every time.
+  if (time && holdTime) {
+    return Number(hold.sessionId) === Number(sessionId) && holdTime === time;
+  }
+  return Number(hold.channelSlotId) === Number(channelSlotId);
+}
+
 export function listHolds(sessionId = null) {
   let holds = pruneExpired(readHolds());
   writeHolds(holds);
   if (Number.isFinite(sessionId) && sessionId > 0) {
     holds = holds.filter((hold) => Number(hold.sessionId) === sessionId);
   }
-  return holds.map((hold) => ({
-    channelSlotId: Number(hold.channelSlotId),
-    sessionId: Number(hold.sessionId),
-    expiresAt: hold.expiresAt,
-  }));
+  return holds.map(toPublicHold);
 }
 
 export function reserveHold({
@@ -60,10 +94,14 @@ export function reserveHold({
   sessionId,
   holdToken = "",
   durationSeconds = SLOT_HOLD_SECONDS,
+  slotTime = "",
 }) {
   const now = Date.now();
   let holds = pruneExpired(readHolds(), now);
-  const existing = holds.find((hold) => Number(hold.channelSlotId) === channelSlotId);
+  const normalizedTime = normalizeSlotTime(slotTime);
+  const existing = holds.find((hold) =>
+    sameHold(hold, channelSlotId, sessionId, normalizedTime),
+  );
 
   if (existing && existing.holdToken !== holdToken) {
     const err = new Error(
@@ -79,29 +117,35 @@ export function reserveHold({
   const safeDuration = Math.min(Math.max(Number(durationSeconds) || SLOT_HOLD_SECONDS, 30), 30 * 60);
   const expiresAt = new Date(now + safeDuration * 1000).toISOString();
   const nextHold = {
-    channelSlotId,
-    sessionId,
+    channelSlotId: Number(channelSlotId),
+    sessionId: Number(sessionId),
     holdToken: nextToken,
     expiresAt,
     updatedAt: new Date(now).toISOString(),
+    ...(normalizedTime ? { slotTime: normalizedTime } : {}),
   };
 
-  holds = holds.filter((hold) => Number(hold.channelSlotId) !== channelSlotId);
+  holds = holds.filter(
+    (hold) => !sameHold(hold, channelSlotId, sessionId, normalizedTime),
+  );
   holds.push(nextHold);
   writeHolds(holds);
 
   return {
-    channelSlotId,
-    sessionId,
+    channelSlotId: nextHold.channelSlotId,
+    sessionId: nextHold.sessionId,
     holdToken: nextToken,
     expiresAt,
     holdSeconds: safeDuration,
+    ...(normalizedTime ? { slotTime: normalizedTime } : {}),
   };
 }
 
-export function releaseHold({ channelSlotId, holdToken }) {
+export function releaseHold({ channelSlotId, holdToken, slotTime = "", sessionId = null }) {
   let holds = pruneExpired(readHolds());
-  const existing = holds.find((hold) => Number(hold.channelSlotId) === channelSlotId);
+  const existing = holds.find((hold) =>
+    sameHold(hold, channelSlotId, sessionId, slotTime),
+  );
   if (!existing) {
     return { released: false, message: "Hold already released." };
   }
@@ -110,7 +154,9 @@ export function releaseHold({ channelSlotId, holdToken }) {
     err.status = 403;
     throw err;
   }
-  holds = holds.filter((hold) => Number(hold.channelSlotId) !== channelSlotId);
+  holds = holds.filter(
+    (hold) => !sameHold(hold, channelSlotId, sessionId, slotTime),
+  );
   writeHolds(holds);
   return { released: true, message: "Hold released." };
 }
@@ -165,6 +211,7 @@ export function createSlotHoldsMiddleware() {
           sessionId,
           holdToken: typeof body.holdToken === "string" ? body.holdToken.trim() : "",
           durationSeconds: body.durationSeconds,
+          slotTime: typeof body.slotTime === "string" ? body.slotTime : "",
         });
         return sendJson(res, 200, reserved);
       }
@@ -179,7 +226,12 @@ export function createSlotHoldsMiddleware() {
             message: "channelSlotId and holdToken are required.",
           });
         }
-        const result = releaseHold({ channelSlotId, holdToken });
+        const result = releaseHold({
+          channelSlotId,
+          holdToken,
+          slotTime: typeof body.slotTime === "string" ? body.slotTime : "",
+          sessionId: Number(body.sessionId) || null,
+        });
         return sendJson(res, 200, result);
       }
 

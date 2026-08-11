@@ -32,7 +32,6 @@ import {
   fetchSessionSlots,
   getCheckoutErrorMessage,
   getPaymentRedirectUrl,
-  type ChannelingSessionSlot,
   type ChannelingSession,
 } from "../services/channelingService";
 import {
@@ -52,7 +51,6 @@ import {
   uniqueDoctors,
   uniqueCenters,
   uniqueSpecializations,
-  formatTime,
 } from "../utils/channelingUtils";
 import {
   isPatientFormValid,
@@ -67,6 +65,7 @@ import {
   shouldShowNewPatientRmoNotice,
   type RmoCaseTakingInfo,
 } from "../utils/rmoCaseTaking";
+import { mapApiSlotsToUi, normalizeSlotTime } from "../utils/slotUtils";
 
 const emptyFilters: Filters = {
   centerName: "",
@@ -92,6 +91,7 @@ interface ActiveSlotHold {
   sessionId: number;
   holdToken: string;
   expiresAt: string;
+  slotTime?: string;
 }
 
 function createProvisionalRef(): string {
@@ -102,49 +102,32 @@ function applyHoldsToSlots(
   slots: SessionTimeSlot[],
   holds: SlotHold[],
   ownChannelSlotId?: number | null,
+  ownSlotTime?: string | null,
 ): SessionTimeSlot[] {
-  const heldIds = new Set(
-    holds
-      .filter((hold) => hold.channelSlotId !== ownChannelSlotId)
-      .map((hold) => hold.channelSlotId),
+  const ownTime = ownSlotTime ? normalizeSlotTime(ownSlotTime) : "";
+  const foreignHolds = holds.filter((hold) => {
+    if (ownChannelSlotId != null && hold.channelSlotId === ownChannelSlotId) {
+      return false;
+    }
+    if (ownTime && hold.slotTime && normalizeSlotTime(hold.slotTime) === ownTime) {
+      return false;
+    }
+    return true;
+  });
+
+  const heldIds = new Set(foreignHolds.map((hold) => hold.channelSlotId));
+  const heldTimes = new Set(
+    foreignHolds
+      .map((hold) => (hold.slotTime ? normalizeSlotTime(hold.slotTime) : ""))
+      .filter(Boolean),
   );
 
-  return slots.map((slot) =>
-    heldIds.has(slot.channelSlotId) ? { ...slot, available: false } : slot,
-  );
-}
-
-function toDisplayTime(slot: ChannelingSessionSlot): string {
-  if (slot.slotTime) return slot.slotTime;
-  if (slot.time) return slot.time;
-  if (slot.startTime) return slot.startTime;
-  return "";
-}
-
-function mapApiSlotToUi(slot: ChannelingSessionSlot): SessionTimeSlot {
-  const slotId = slot.slotId ?? slot.id;
-  if (slotId == null) {
-    throw new Error("Slot id missing in API response");
-  }
-  const rawTime = toDisplayTime(slot);
-  const normalized = rawTime.length >= 5 ? `${rawTime.slice(0, 5)}:00` : rawTime;
-  const available =
-    typeof slot.isAvailable === "boolean"
-      ? slot.isAvailable
-      : typeof slot.available === "boolean"
-        ? slot.available
-        : slot.slotStatus
-          ? slot.slotStatus.toLowerCase() === "available"
-          : slot.status
-            ? slot.status.toLowerCase() === "available"
-          : true;
-  return {
-    id: slotId,
-    channelSlotId: slotId,
-    time: normalized,
-    label: normalized ? formatTime(normalized) : `Slot ${slotId}`,
-    available,
-  };
+  return slots.map((slot) => {
+    const slotTime = normalizeSlotTime(slot.time);
+    const blockedById = heldIds.has(slot.channelSlotId);
+    const blockedByTime = Boolean(slotTime && heldTimes.has(slotTime));
+    return blockedById || blockedByTime ? { ...slot, available: false } : slot;
+  });
 }
 
 function ChannelingPage() {
@@ -319,15 +302,17 @@ function ChannelingPage() {
   const syncSlotsWithHolds = async (
     sessionId: number,
     ownChannelSlotId?: number | null,
+    ownSlotTime?: string | null,
   ) => {
     const [slots, holds] = await Promise.all([
       fetchSessionSlots(sessionId),
       fetchActiveHolds(sessionId).catch(() => [] as SlotHold[]),
     ]);
     return applyHoldsToSlots(
-      slots.map(mapApiSlotToUi),
+      mapApiSlotsToUi(slots, sessionId),
       holds,
       ownChannelSlotId,
+      ownSlotTime,
     );
   };
 
@@ -346,6 +331,7 @@ function ChannelingPage() {
         const nextSlots = await syncSlotsWithHolds(
           bookingSession.sessionId,
           slotHoldRef.current?.channelSlotId,
+          slotHoldRef.current?.slotTime,
         );
         if (!cancelled) {
           setBookingSlots(nextSlots);
@@ -375,6 +361,7 @@ function ChannelingPage() {
       void syncSlotsWithHolds(
         bookingSession.sessionId,
         slotHoldRef.current?.channelSlotId,
+        slotHoldRef.current?.slotTime,
       )
         .then((nextSlots) => setBookingSlots(nextSlots))
         .catch(() => undefined);
@@ -392,6 +379,8 @@ function ChannelingPage() {
       await releaseSlotHold({
         channelSlotId: current.channelSlotId,
         holdToken: current.holdToken,
+        slotTime: current.slotTime,
+        sessionId: current.sessionId,
       });
     } catch {
       // Ignore release failures; hold will expire server-side.
@@ -405,6 +394,8 @@ function ChannelingPage() {
       releaseSlotHoldBeacon({
         channelSlotId: current.channelSlotId,
         holdToken: current.holdToken,
+        slotTime: current.slotTime,
+        sessionId: current.sessionId,
       });
     };
     window.addEventListener("pagehide", onPageHide);
@@ -415,6 +406,8 @@ function ChannelingPage() {
         releaseSlotHoldBeacon({
           channelSlotId: current.channelSlotId,
           holdToken: current.holdToken,
+          slotTime: current.slotTime,
+          sessionId: current.sessionId,
         });
         slotHoldRef.current = null;
       }
@@ -499,16 +492,28 @@ function ChannelingPage() {
     resetBooking();
   };
 
+  const isOwnHeldSlot = (slot: SessionTimeSlot, hold?: ActiveSlotHold | null) => {
+    if (!hold) return false;
+    if (hold.channelSlotId === slot.channelSlotId) return true;
+    if (
+      hold.slotTime &&
+      normalizeSlotTime(hold.slotTime) === normalizeSlotTime(slot.time)
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   const handleSelectSlot = async (slot: SessionTimeSlot) => {
     if (!bookingSession || holdBusy) return;
-    if (!slot.available && slot.channelSlotId !== slotHold?.channelSlotId) {
+    if (!slot.available && !isOwnHeldSlot(slot, slotHold)) {
       setSubmitError(
         "This time slot is currently reserved by another patient. Please choose another slot.",
       );
       return;
     }
 
-    if (slotHold?.channelSlotId === slot.channelSlotId) {
+    if (isOwnHeldSlot(slot, slotHold)) {
       setSelectedSlot(slot);
       return;
     }
@@ -521,6 +526,8 @@ function ChannelingPage() {
         await releaseSlotHold({
           channelSlotId: slotHold.channelSlotId,
           holdToken: slotHold.holdToken,
+          slotTime: slotHold.slotTime,
+          sessionId: slotHold.sessionId,
         }).catch(() => undefined);
         slotHoldRef.current = null;
         setSlotHold(null);
@@ -530,6 +537,7 @@ function ChannelingPage() {
         channelSlotId: slot.channelSlotId,
         sessionId: bookingSession.sessionId,
         durationSeconds: SLOT_HOLD_SECONDS,
+        slotTime: slot.time,
       });
 
       const nextHold: ActiveSlotHold = {
@@ -537,6 +545,7 @@ function ChannelingPage() {
         sessionId: reserved.sessionId,
         holdToken: reserved.holdToken,
         expiresAt: reserved.expiresAt,
+        slotTime: reserved.slotTime || normalizeSlotTime(slot.time),
       };
       expiredHoldTokenRef.current = null;
       slotHoldRef.current = nextHold;
@@ -548,6 +557,7 @@ function ChannelingPage() {
       const refreshed = await syncSlotsWithHolds(
         bookingSession.sessionId,
         nextHold.channelSlotId,
+        nextHold.slotTime,
       );
       setBookingSlots(refreshed);
     } catch (err) {
@@ -599,12 +609,14 @@ function ChannelingPage() {
         sessionId: bookingSession.sessionId,
         holdToken: slotHold?.holdToken,
         durationSeconds: SLOT_HOLD_SECONDS,
+        slotTime: selectedSlot.time,
       });
       const nextHold: ActiveSlotHold = {
         channelSlotId: reserved.channelSlotId,
         sessionId: reserved.sessionId,
         holdToken: reserved.holdToken,
         expiresAt: reserved.expiresAt,
+        slotTime: reserved.slotTime || normalizeSlotTime(selectedSlot.time),
       };
       slotHoldRef.current = nextHold;
       setSlotHold(nextHold);
@@ -760,7 +772,9 @@ function ChannelingPage() {
     setIsSubmitting(true);
 
     try {
-      const channelSlotId = Number(selectedSlot.channelSlotId);
+      const channelSlotId = Number(
+        selectedSlot.checkoutSlotId ?? selectedSlot.channelSlotId,
+      );
       if (!Number.isFinite(channelSlotId) || channelSlotId <= 0) {
         throw new Error("Invalid slot id. Please reselect a time slot.");
       }

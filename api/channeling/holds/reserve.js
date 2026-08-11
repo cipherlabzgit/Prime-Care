@@ -23,6 +23,7 @@ export default function handler(req, res) {
       sessionId,
       holdToken: typeof body.holdToken === "string" ? body.holdToken.trim() : "",
       durationSeconds: body.durationSeconds,
+      slotTime: typeof body.slotTime === "string" ? body.slotTime : "",
     });
     return res.status(200).json(reserved);
   } catch (err) {

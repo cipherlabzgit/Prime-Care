@@ -9,6 +9,8 @@ export interface SlotHold {
   channelSlotId: number;
   sessionId: number;
   expiresAt: string;
+  /** Normalized clock time (HH:MM:00) so holds stay per-slot when ERP ids collide. */
+  slotTime?: string;
 }
 
 export interface SlotHoldReservation extends SlotHold {
@@ -30,6 +32,7 @@ export async function reserveSlotHold(payload: {
   sessionId: number;
   holdToken?: string;
   durationSeconds?: number;
+  slotTime?: string;
 }): Promise<SlotHoldReservation> {
   const { data } = await axios.post<SlotHoldReservation>(
     `${HOLDS_ROOT}/reserve`,
@@ -41,6 +44,8 @@ export async function reserveSlotHold(payload: {
 export async function releaseSlotHold(payload: {
   channelSlotId: number;
   holdToken: string;
+  slotTime?: string;
+  sessionId?: number;
 }): Promise<void> {
   await axios.post(`${HOLDS_ROOT}/release`, payload);
 }
@@ -49,6 +54,8 @@ export async function releaseSlotHold(payload: {
 export function releaseSlotHoldBeacon(payload: {
   channelSlotId: number;
   holdToken: string;
+  slotTime?: string;
+  sessionId?: number;
 }): void {
   const body = JSON.stringify(payload);
   if (typeof fetch === "function") {

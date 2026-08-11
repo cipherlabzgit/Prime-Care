@@ -18,7 +18,12 @@ export default function handler(req, res) {
       });
     }
 
-    const result = releaseHold({ channelSlotId, holdToken });
+    const result = releaseHold({
+      channelSlotId,
+      holdToken,
+      slotTime: typeof body.slotTime === "string" ? body.slotTime : "",
+      sessionId: Number(body.sessionId) || null,
+    });
     return res.status(200).json(result);
   } catch (err) {
     const status = Number(err?.status) || 500;

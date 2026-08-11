@@ -1,6 +1,9 @@
 export interface SessionTimeSlot {
   id: number;
+  /** Unique id used for temporary holds (may be derived from session + time). */
   channelSlotId: number;
+  /** ERP slot id sent at checkout when it differs from the hold id. */
+  checkoutSlotId?: number;
   time: string;
   label: string;
   available: boolean;
