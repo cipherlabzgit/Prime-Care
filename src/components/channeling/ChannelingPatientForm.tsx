@@ -123,7 +123,7 @@ function ChannelingPatientForm({
             value={patient.lastName}
             disabled={fieldDisabled}
             readOnly={profileLinked}
-            placeholder="Second name"
+            placeholder="Last name"
             autoComplete="family-name"
             onChange={(e) => onChange({ lastName: e.target.value })}
           />

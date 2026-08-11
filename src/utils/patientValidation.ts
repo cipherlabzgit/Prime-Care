@@ -77,9 +77,9 @@ export function validatePatientForm(
   }
 
   if (!patient.lastName.trim()) {
-    errors.lastName = "Second name is required.";
+    errors.lastName = "Last name is required.";
   } else if (patient.lastName.trim().length < 2) {
-    errors.lastName = "Enter a valid second name.";
+    errors.lastName = "Enter a valid last name.";
   }
 
   if (!patient.nic.trim()) {
