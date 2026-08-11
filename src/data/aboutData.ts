@@ -18,7 +18,7 @@ export const aboutStory = {
 
 export const aboutStats = [
   { value: "6+", label: "Healthcare Disciplines" },
-  { value: "9–9", label: "Daily Clinic Hours" },
+  { value: "9am–9pm", label: "Daily Clinic Hours" },
   { value: "3", label: "Languages Supported" },
   { value: "✓", label: "Parking Available" },
 ] as const;
@@ -158,7 +158,7 @@ export const aboutWhyChoose = [
     icon: "🧠",
     title: "Therapeutic Care",
     description:
-      "Speech Therapy, Physiotherapy, Occupational Therapy, Psychological Counseling, and Clinical Psychology as part of our integrative approach.",
+      "Speech Therapy, Physiotherapy, Occupational Therapy, Psychological Counseling, Clinical Psychology, and Diet & Nutrition Support as part of our integrative approach.",
   },
   {
     id: "multidisciplinary",

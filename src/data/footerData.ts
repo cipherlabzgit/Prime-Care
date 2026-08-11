@@ -30,16 +30,16 @@ export const footerSocialLinks = [
 ] as const;
 
 export const footerTrustItems = [
-  { icon: "🌿", label: "Integrative Care" },
-  { icon: "💛", label: "Compassionate Service" },
-  { icon: "🕐", label: "Open Every Day 9–9" },
+  { label: "Integrative Care" },
+  { label: "Compassionate Service" },
+  { label: "Open Every Day 9am to 9pm" },
 ] as const;
 
 export const footerTrustStats = [
   { value: "6+", label: "Healthcare Disciplines" },
-  { value: "9–9", label: "Daily Clinic Hours" },
+  { value: "9am–9pm", label: "Daily Clinic Hours" },
   { value: "3", label: "Languages Supported" },
-  { value: "✓", label: "Parking Available" },
+  { value: "Yes", label: "Parking Available" },
 ] as const;
 
 export const footerContact = {

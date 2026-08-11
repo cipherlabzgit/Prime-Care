@@ -48,7 +48,6 @@ function SiteFooter() {
           <div className="site-footer__trust" aria-label="Trust indicators">
             {footerTrustItems.map((item) => (
               <span key={item.label} className="site-footer__trust-item">
-                <span aria-hidden="true">{item.icon}</span>
                 {item.label}
               </span>
             ))}

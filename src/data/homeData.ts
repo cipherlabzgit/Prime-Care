@@ -43,7 +43,7 @@ export const services: ServiceItem[] = getHomeServiceCards();
 
 export const statistics: StatisticItem[] = [
   { id: "disciplines", value: "6+", label: "Healthcare Disciplines" },
-  { id: "hours", value: "9–9", label: "Daily Clinic Hours" },
+  { id: "hours", value: "9am–9pm", label: "Daily Clinic Hours" },
   { id: "languages", value: "3", label: "Languages Supported" },
   { id: "parking", value: "✓", label: "Parking Available" },
 ];

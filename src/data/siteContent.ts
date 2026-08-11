@@ -158,7 +158,7 @@ export const faqItems = [
     id: "services",
     question: "What other services do you offer?",
     answer:
-      "Our services include Homeopathy, Speech Therapy, Physiotherapy, Occupational Therapy, Psychological Counseling, Clinical Psychology, Laboratory Services, Nutraceuticals, Supplements, Wellness Programs, Preventive Healthcare, and Corporate Healthcare Solutions.",
+      "Our services include Homeopathy, Speech Therapy, Physiotherapy, Occupational Therapy, Psychological Counseling, Clinical Psychology, Diet & Nutrition Support, Laboratory Services, Nutraceuticals, Supplements, Wellness Programs, Preventive Healthcare, and Corporate Healthcare Solutions.",
   },
   {
     id: "appointment",

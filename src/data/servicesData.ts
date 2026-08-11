@@ -19,7 +19,7 @@ export const servicesHero = {
 
 export const servicesStatistics: ServiceStatistic[] = [
   { id: "disciplines", value: "6+", label: "Healthcare Disciplines" },
-  { id: "hours", value: "9–9", label: "Daily Clinic Hours" },
+  { id: "hours", value: "9am–9pm", label: "Daily Clinic Hours" },
   { id: "languages", value: "3", label: "Languages Supported" },
   { id: "parking", value: "✓", label: "Parking Available" },
 ];
@@ -36,7 +36,7 @@ export const clinicalServices: ClinicalService[] = [
     services: [
       "Holistic Homeopathic consultations",
       "Individualized care planning",
-      "Chronic and recurrent health concerns",
+      "Acute and Chronic Diseases",
       "Skin-related and allergic tendencies",
       "Digestive and respiratory wellbeing",
       "Women's and children's health support",
@@ -63,6 +63,7 @@ export const clinicalServices: ClinicalService[] = [
       "Occupational Therapy",
       "Psychological Counseling",
       "Clinical Psychology",
+      "Diet & Nutrition Support",
     ],
     treatments: [
       "Communication and speech support",
@@ -70,6 +71,7 @@ export const clinicalServices: ClinicalService[] = [
       "Daily living and functional skills",
       "Emotional wellbeing and counseling",
       "Professional psychological assessment and care",
+      "Diet planning and nutrition guidance",
     ],
   },
   {
@@ -86,6 +88,7 @@ export const clinicalServices: ClinicalService[] = [
       "Health awareness programs",
       "Individual wellness consultations",
       "Healthy living support",
+      "Diet and nutrition support",
       "Corporate wellness programs",
       "Personalized health improvement pathways",
     ],
@@ -93,6 +96,7 @@ export const clinicalServices: ClinicalService[] = [
       "Proactive health awareness",
       "Risk reduction strategies",
       "Healthy habit development",
+      "Diet and nutrition guidance",
       "Long-term wellbeing planning",
     ],
   },
