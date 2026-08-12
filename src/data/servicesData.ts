@@ -2,10 +2,11 @@ import type { ClinicalService, ServiceStatistic } from "../types/service";
 
 const serviceImages = {
   homeopathy: "/images/services/general-medicine.jpg",
+  speechLanguage: "/images/services/speech-language-therapy.png",
   therapeutic: "/images/services/pediatrics.jpg",
   wellness: "/images/hero-consultation.png",
-  laboratory: "/images/services/laboratory.jpg",
-  pharmacy: "/images/services/radiology.jpg",
+  laboratory: "/images/services/laboratory.png",
+  pharmacy: "/images/services/pharmacy-nutraceuticals.png",
   corporate: "/images/services/cardiology.jpg",
 } as const;
 
@@ -18,10 +19,10 @@ export const servicesHero = {
 } as const;
 
 export const servicesStatistics: ServiceStatistic[] = [
-  { id: "disciplines", value: "6+", label: "Healthcare Disciplines" },
+  { id: "disciplines", value: "7+", label: "Healthcare Disciplines" },
   { id: "hours", value: "9am–9pm", label: "Daily Clinic Hours" },
   { id: "languages", value: "3", label: "Languages Supported" },
-  { id: "parking", value: "✓", label: "Parking Available" },
+  { id: "parking", value: "Yes", label: "Parking Available" },
 ];
 
 export const clinicalServices: ClinicalService[] = [
@@ -46,19 +47,45 @@ export const clinicalServices: ClinicalService[] = [
       "Listen — understand your concerns and experiences",
       "Explore — consider health history and influencing factors",
       "Individualize — personalized approaches for each person",
+      "Prescribe — provide the right homeopathic medicine for you",
       "Support — journey toward improved health and wellbeing",
     ],
   },
   {
+    id: "speech-language",
+    name: "Speech-Language Therapy",
+    slug: "speech-language-therapy",
+    description:
+      "Our Speech-Language Therapy services support children and adults in developing effective communication, speech, language, and feeding-related skills. Through individualized assessment and evidence-informed intervention, we help clients communicate more clearly, confidently, and independently in everyday life.",
+    icon: "💬",
+    image: serviceImages.speechLanguage,
+    services: [
+      "Speech & Language Assessment",
+      "Individualized Speech-Language Therapy",
+      "Early Communication & Developmental Support",
+      "Adult Communication Rehabilitation",
+      "Feeding & Swallowing Support",
+      "Augmentative & Alternative Communication (AAC)",
+      "Parent & Caregiver Guidance",
+    ],
+    treatments: [
+      "Speech & Language Development",
+      "Social & Functional Communication",
+      "Fluency & Voice",
+      "Neurodevelopmental & Learning Needs",
+      "Adult Communication & Rehabilitation",
+      "Eating, Drinking & Swallowing",
+    ],
+  },
+  {
     id: "therapeutic",
-    name: "Therapeutic Services",
+    name: "Other Therapeutic Services",
     slug: "therapeutic-services",
     description:
       "Health is not only about treating illness. It is also about being able to communicate, move freely, participate in daily life, manage emotions, and reach your potential. Our therapeutic services support individuals across different stages of life.",
     icon: "🧠",
     image: serviceImages.therapeutic,
     services: [
-      "Speech Therapy",
       "Physiotherapy",
       "Occupational Therapy",
       "Psychological Counseling",
@@ -66,7 +93,6 @@ export const clinicalServices: ClinicalService[] = [
       "Diet & Nutrition Support",
     ],
     treatments: [
-      "Communication and speech support",
       "Mobility, strength, and recovery",
       "Daily living and functional skills",
       "Emotional wellbeing and counseling",

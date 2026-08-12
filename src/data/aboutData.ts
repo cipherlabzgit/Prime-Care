@@ -2,26 +2,49 @@ import { clinicInfo } from "./siteContent";
 
 export const aboutStory = {
   eyebrow: "About Us",
-  title: "Healthcare With a Bigger Picture",
-  subtitle:
-    "Premier Care Integrative Clinic was founded on the belief that healthcare should be more than the treatment of symptoms.",
+  title: "Integrative Care for Lasting Wellbeing",
   mission:
     "To provide compassionate, personalized, and integrative healthcare by bringing together diverse healthcare disciplines, understanding the whole person, addressing underlying factors, promoting prevention, and empowering individuals and communities to achieve lasting health and wellbeing.",
   vision:
     "To create a future where healthcare looks beyond illness, empowers people to understand their health, and enables every individual to live better, live longer, and live fully.",
-  excellence:
-    "Through an integrative model that brings together Homeopathy, therapeutic services, psychological care, diagnostics, wellness solutions, nutraceuticals, supplements, and preventive healthcare, we aim to provide a more complete and personalized healthcare experience. We believe in listening carefully, understanding deeply, treating thoughtfully, and supporting people for the long term.",
-  missionIcon: "🎯",
-  visionIcon: "🔭",
   heroImage: "/images/hero-consultation.png",
 };
 
-export const aboutStats = [
-  { value: "6+", label: "Healthcare Disciplines" },
-  { value: "9am–9pm", label: "Daily Clinic Hours" },
-  { value: "3", label: "Languages Supported" },
-  { value: "✓", label: "Parking Available" },
-] as const;
+export interface AboutPresentationSlide {
+  id: string;
+  label: string;
+  headline: string[];
+  description: string;
+  keywords: string[];
+  image: string;
+  imageAlt: string;
+  tone: "vision" | "mission";
+}
+
+export const aboutPresentationSlides: AboutPresentationSlide[] = [
+  {
+    id: "vision",
+    label: "Our Vision",
+    headline: ["Live Better.", "Live Longer.", "Live Fully."],
+    description:
+      "Healthcare that goes beyond treating illness — helping people understand their health and build a healthier future.",
+    keywords: ["Whole-Person Care", "Prevention", "Better Living"],
+    image: "/images/about/vision.png",
+    imageAlt: "Vision of healthier living and lasting wellbeing",
+    tone: "vision",
+  },
+  {
+    id: "mission",
+    label: "Our Mission",
+    headline: ["Care That Understands", "the Whole Person."],
+    description:
+      "We combine medical expertise, personal understanding, and continuous support to create care around each individual.",
+    keywords: ["Listen", "Understand", "Personalize"],
+    image: "/images/about/mission.png",
+    imageAlt: "Mission of compassionate personalized integrative care",
+    tone: "mission",
+  },
+];
 
 export const aboutJourney = [
   {
@@ -156,9 +179,9 @@ export const aboutWhyChoose = [
   {
     id: "therapeutic",
     icon: "🧠",
-    title: "Therapeutic Care",
+    title: "Other Therapeutic Services",
     description:
-      "Speech Therapy, Physiotherapy, Occupational Therapy, Psychological Counseling, Clinical Psychology, and Diet & Nutrition Support as part of our integrative approach.",
+      "Speech-Language Therapy, Physiotherapy, Occupational Therapy, Psychological Counseling, Clinical Psychology, and Diet & Nutrition Support as part of our integrative approach.",
   },
   {
     id: "multidisciplinary",

@@ -5,7 +5,6 @@ import CtaSection from "../components/home/CtaSection";
 import CareModelSection from "../components/home/CareModelSection";
 import FeaturedDoctorsSection from "../components/home/FeaturedDoctorsSection";
 import SiteFooter from "../components/layout/SiteFooter";
-import SpecialtiesSection from "../components/home/SpecialtiesSection";
 import StatisticsSection from "../components/home/StatisticsSection";
 import TestimonialsSection from "../components/home/TestimonialsSection";
 import WelcomeSection from "../components/home/WelcomeSection";
@@ -23,7 +22,6 @@ function HomePage() {
         <WelcomeSection />
         <CareModelSection />
         <WhyChooseUsSection />
-        <SpecialtiesSection />
         <StatisticsSection />
         <FeaturedDoctorsSection />
         <TestimonialsSection />

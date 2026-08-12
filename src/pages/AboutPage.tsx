@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { USER_MESSAGES } from "../utils/userMessages";
 import { Link } from "react-router-dom";
-import AboutJourney from "../components/about/AboutJourney";
-import CoreValuesSection from "../components/about/CoreValuesSection";
+import AboutHero from "../components/about/AboutHero";
 import LeadershipTeam from "../components/about/LeadershipTeam";
 import Navbar from "../components/Navbar";
 import SiteFooter from "../components/layout/SiteFooter";
@@ -15,77 +14,16 @@ import ReviewStatistics from "../components/reviews/ReviewStatistics";
 import ReviewSubmissionForm from "../components/reviews/ReviewSubmissionForm";
 import TestimonialCard from "../components/reviews/TestimonialCard";
 import PageState from "../components/ui/PageState";
-import {
-  aboutStats,
-  aboutStory,
-  aboutWhyChoose,
-} from "../data/aboutData";
+import { aboutWhyChoose } from "../data/aboutData";
 import {
   fetchApprovedReviews,
   fetchReviewStats,
   fetchTopReviews,
 } from "../services/reviewService";
 import type { Review, ReviewSortOption, ReviewStats } from "../types/review";
-import { useCountUp } from "../hooks/useCountUp";
 import { sortReviews } from "../utils/reviewUtils";
 import "../styles/about.css";
 import "../styles/home.css";
-
-function AboutStat({ value, label, delay }: { value: string; label: string; delay: number }) {
-  const [active, setActive] = useState(false);
-  const animate = !value.includes("/");
-  const display = useCountUp(value, active && animate, 1400);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setActive(true), delay);
-    return () => window.clearTimeout(timer);
-  }, [delay]);
-
-  return (
-    <div className="about-stat-card">
-      <strong>{animate ? display : value}</strong>
-      <span>{label}</span>
-    </div>
-  );
-}
-
-function AboutHeroVisual() {
-  const [imageError, setImageError] = useState(false);
-
-  return (
-    <div className="about-hero__visual" aria-hidden="true">
-      <div className="about-hero__image-shell">
-        {!imageError ? (
-          <img
-            className="about-hero__image"
-            src={aboutStory.heroImage}
-            alt=""
-            width={560}
-            height={420}
-            loading="eager"
-            onError={() => setImageError(true)}
-          />
-        ) : null}
-        <div
-          className={`about-hero__image-fallback${
-            imageError ? " about-hero__image-fallback--visible" : ""
-          }`}
-        >
-          <span className="about-hero__fallback-icon">🏥</span>
-        </div>
-        <div className="about-hero__image-overlay" />
-      </div>
-      <div className="about-hero__float about-hero__float--care">
-        <strong>Trusted Care</strong>
-        <span>Verified specialists</span>
-      </div>
-      <div className="about-hero__float about-hero__float--patients">
-        <strong>5000+</strong>
-        <span>Patients served</span>
-      </div>
-    </div>
-  );
-}
 
 function AboutPage() {
   usePageTitle("About Us");
@@ -137,64 +75,7 @@ function AboutPage() {
     <div className="about-page flex min-h-svh flex-col">
       <Navbar />
 
-      <section className="about-hero" aria-labelledby="about-hero-heading">
-        <div className="about-hero__pattern" aria-hidden="true" />
-        <div className="about-hero__layout">
-          <div className="about-hero__content">
-            <ScrollReveal>
-              <span className="about-hero__eyebrow">{aboutStory.eyebrow}</span>
-              <h1 id="about-hero-heading" className="about-hero__title">
-                {aboutStory.title}
-              </h1>
-              <p className="about-hero__subtitle">{aboutStory.subtitle}</p>
-            </ScrollReveal>
-
-            <div className="about-hero__cards">
-              <ScrollReveal delay={80}>
-                <article className="about-mission-card">
-                  <span className="about-mission-card__icon" aria-hidden="true">
-                    {aboutStory.missionIcon}
-                  </span>
-                  <h2>Our Mission</h2>
-                  <p>{aboutStory.mission}</p>
-                </article>
-              </ScrollReveal>
-              <ScrollReveal delay={160}>
-                <article className="about-mission-card about-mission-card--vision">
-                  <span className="about-mission-card__icon" aria-hidden="true">
-                    {aboutStory.visionIcon}
-                  </span>
-                  <h2>Our Vision</h2>
-                  <p>{aboutStory.vision}</p>
-                </article>
-              </ScrollReveal>
-            </div>
-
-            <ScrollReveal delay={220}>
-              <p className="about-hero__excellence">{aboutStory.excellence}</p>
-            </ScrollReveal>
-
-            <div className="about-stats-grid" aria-label="PremierCare statistics">
-              {aboutStats.map((stat, index) => (
-                <AboutStat
-                  key={stat.label}
-                  value={stat.value}
-                  label={stat.label}
-                  delay={index * 100}
-                />
-              ))}
-            </div>
-          </div>
-
-          <ScrollReveal delay={120}>
-            <AboutHeroVisual />
-          </ScrollReveal>
-        </div>
-      </section>
-
-      <AboutJourney />
-
-      <CoreValuesSection />
+      <AboutHero />
 
       <LeadershipTeam />
 

@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCountUp } from "../hooks/useCountUp";
 import { clinicInfo, homeHero } from "../data/siteContent";
-import { statistics } from "../data/homeData";
+import { heroHighlights } from "../data/homeData";
 import "../styles/hero.css";
 
-const TRUST_STATS = statistics.map((stat, index) => ({
+const TRUST_STATS = heroHighlights.map((stat, index) => ({
   key: stat.id,
   value: stat.value,
   label: stat.label,
-  animate: !stat.value.includes("–") && !stat.value.includes("✓"),
+  animate: false,
   delay: index * 100,
 }));
 
@@ -125,8 +125,6 @@ function Hero() {
             {homeHero.title}
           </h1>
           <p className="hero__subtitle hero__subtitle--tagline">{homeHero.subtitle}</p>
-          <p className="hero__subtitle">{homeHero.description}</p>
-          <p className="hero__closing">{homeHero.closing}</p>
           <div className="hero__actions">
             <Link to="/channeling" className="hero__btn hero__btn--primary">
               <span className="hero__btn-text">{homeHero.primaryCta}</span>

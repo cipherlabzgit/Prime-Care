@@ -26,9 +26,6 @@ export const homeHero = {
   badge: "Premier Care Integrative Clinic",
   title: "Healthcare That Looks Beyond the Symptoms",
   subtitle: clinicInfo.tagline,
-  description:
-    "At Premier Care Integrative Clinic, we believe healthcare should go beyond simply managing symptoms. We take time to understand your health history, your individual circumstances, and the factors that may be influencing your wellbeing.",
-  closing: "Your health is personal. Your care should be too.",
   primaryCta: "Book an Appointment",
   secondaryCta: "Explore Our Services",
 } as const;
@@ -37,13 +34,35 @@ export const welcomeSection = {
   eyebrow: "Welcome to Premier Care",
   title: "A More Complete Approach to Healthcare",
   lead: "Your health is more than a collection of symptoms.",
+  image: "/images/services/general-medicine.jpg",
+  imageAlt: "Premier Care Integrative Clinic consultation",
   paragraphs: [
     "Every individual has a unique story—shaped by their physical health, emotional wellbeing, lifestyle, environment, experiences, and personal history. At Premier Care Integrative Clinic, we take a holistic view of that story.",
-    "Our approach brings together multiple healthcare disciplines, including Homeopathy, therapeutic services, psychological care, diagnostics, nutraceuticals, supplements, wellness programs, and preventive healthcare.",
-    "Rather than focusing only on what is happening today, we strive to understand the bigger picture, explore the underlying factors contributing to health concerns, support the body's journey toward recovery and balance, and empower you with knowledge and preventive strategies for the future.",
   ],
-  closing:
-    "Because we believe the goal of healthcare is not simply to help you feel better today. It is to help you Live Better. Live Longer. Live Fully.",
+  disciplinesIntro:
+    "Our approach brings together multiple healthcare disciplines, including:",
+  disciplines: [
+    "Homeopathy",
+    "Speech Therapy",
+    "Physiotherapy",
+    "Occupational Therapy",
+    "Educational Therapy",
+    "Psychotherapy",
+    "Counselling",
+    "Performance Enhancement",
+    "Sex Therapy",
+    "Hippotherapy",
+    "Addiction Recovery",
+    "Psychiatric Assessment",
+    "ANTS based Therapy",
+    "Wellness",
+    "Laboratory Services",
+    "Nutraceuticals & Supplements",
+    "Preventive Healthcare",
+    "Diet & Nutrition Support",
+    "Diagnostics",
+    "Corporate Healthcare",
+  ],
 } as const;
 
 export const careModelSteps = [
@@ -51,47 +70,45 @@ export const careModelSteps = [
     id: "assess",
     step: "01",
     title: "Assess",
-    description:
-      "We begin by understanding your health concerns, symptoms, history, lifestyle, and individual needs.",
+    image: "/images/care-model/assess.png",
+    imageAlt: "Doctor assessing a patient during consultation",
   },
   {
     id: "understand",
     step: "02",
     title: "Understand",
-    description:
-      "We look deeper to identify the underlying factors that may be contributing to your health concerns.",
+    image: "/images/care-model/understand.png",
+    imageAlt: "Looking deeper at lifestyle and health factors",
   },
   {
     id: "personalize",
     step: "03",
     title: "Personalize",
-    description: "Your care is tailored to you, because no two individuals are exactly alike.",
+    image: "/images/care-model/personalize.png",
+    imageAlt: "Personalized care planned around the individual",
   },
   {
     id: "treat",
     step: "04",
     title: "Treat & Support",
-    description:
-      "We bring together appropriate healthcare and therapeutic approaches to support your journey toward better health.",
+    image: "/images/care-model/treat.png",
+    imageAlt: "Caring treatment and supportive healthcare",
   },
   {
     id: "prevent",
     step: "05",
     title: "Prevent",
-    description:
-      "We focus not only on today's concerns, but also on reducing future health risks through awareness, lifestyle support, and preventive strategies.",
+    image: "/images/care-model/prevent.png",
+    imageAlt: "Preventive care protecting long-term health",
   },
   {
     id: "thrive",
     step: "06",
     title: "Thrive",
-    description:
-      "Our ultimate goal is to help you move beyond simply managing health concerns and toward living a healthier, more fulfilling life.",
+    image: "/images/care-model/thrive.png",
+    imageAlt: "Living actively and thriving in good health",
   },
 ] as const;
-
-export const carePhilosophy =
-  "Assess → Understand → Personalize → Treat & Support → Prevent → Thrive";
 
 export const appointmentSteps = [
   {
@@ -158,7 +175,7 @@ export const faqItems = [
     id: "services",
     question: "What other services do you offer?",
     answer:
-      "Our services include Homeopathy, Speech Therapy, Physiotherapy, Occupational Therapy, Psychological Counseling, Clinical Psychology, Diet & Nutrition Support, Laboratory Services, Nutraceuticals, Supplements, Wellness Programs, Preventive Healthcare, and Corporate Healthcare Solutions.",
+      "Our services include Homeopathy, Speech-Language Therapy, Physiotherapy, Occupational Therapy, Psychological Counseling, Clinical Psychology, Diet & Nutrition Support, Laboratory Services, Nutraceuticals, Supplements, Wellness Programs, Preventive Healthcare, and Corporate Healthcare Solutions.",
   },
   {
     id: "appointment",

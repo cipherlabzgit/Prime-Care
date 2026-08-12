@@ -36,7 +36,7 @@ export const footerTrustItems = [
 ] as const;
 
 export const footerTrustStats = [
-  { value: "6+", label: "Healthcare Disciplines" },
+  { value: "7+", label: "Healthcare Disciplines" },
   { value: "9am–9pm", label: "Daily Clinic Hours" },
   { value: "3", label: "Languages Supported" },
   { value: "Yes", label: "Parking Available" },

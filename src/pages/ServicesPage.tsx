@@ -6,7 +6,6 @@ import Navbar from "../components/Navbar";
 import SiteFooter from "../components/layout/SiteFooter";
 import ServiceDetailSection from "../components/services/ServiceDetailSection";
 import ServicesCtaSection from "../components/services/ServicesCtaSection";
-import ServicesHero from "../components/services/ServicesHero";
 import ServicesStatsSection from "../components/services/ServicesStatsSection";
 import PageState from "../components/ui/PageState";
 import { fetchClinicalServices } from "../services/clinicalServicesService";
@@ -61,8 +60,6 @@ function ServicesPage() {
     <div className="services-page flex min-h-svh flex-col">
       <Navbar />
       <main className="services-main flex-1">
-        <ServicesHero />
-
         {loading ? (
           <section className="home-section services-loading" aria-label="Loading services">
             <div className="services-loading__grid">

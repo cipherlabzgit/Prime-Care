@@ -14,7 +14,6 @@ function WhyChooseUsSection() {
         <SectionHeader
           eyebrow={whyChooseSection.eyebrow}
           title={whyChooseSection.title}
-          description={whyChooseSection.description}
         />
       </ScrollReveal>
       <div className="home-grid home-grid--4">

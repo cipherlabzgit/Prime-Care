@@ -718,31 +718,108 @@
   .welcome-section__grid {
     grid-template-columns: 1fr 1.1fr;
     gap: 3rem;
+    align-items: stretch;
   }
+
+  .welcome-section__grid > .home-reveal {
+    height: 100%;
+  }
+}
+
+.welcome-section__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.welcome-section__media {
+  overflow: hidden;
+  border-radius: 1.1rem;
+  background: #e8f4f5;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 18px 40px -20px rgba(2, 100, 105, 0.35);
+}
+
+.welcome-section__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: center;
 }
 
 .welcome-section__body {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  height: 100%;
 }
 
-.welcome-section__text,
-.welcome-section__closing {
+.welcome-section__text {
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.65;
   color: var(--text-muted, #475569);
 }
 
-.welcome-section__closing {
-  font-weight: 700;
-  color: var(--brand-700, #026469);
+.welcome-section__disciplines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.welcome-section__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.55rem 1.25rem;
+  align-content: start;
+}
+
+@media (min-width: 480px) {
+  .welcome-section__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .welcome-section__list {
+    gap: 0.7rem 1.4rem;
+  }
+}
+
+.welcome-section__list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--text-main, #0f172a);
+}
+
+.welcome-section__list-mark {
+  flex-shrink: 0;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-top: 0.45rem;
+  border-radius: 999px;
+  background: var(--brand-teal, #0d9488);
+}
+
+.welcome-section__cta {
+  margin-top: auto;
+  align-self: stretch;
 }
 
 .care-model-section__grid {
   display: grid;
-  gap: 1rem;
+  gap: 1.1rem;
   grid-template-columns: 1fr;
 }
 
@@ -759,47 +836,86 @@
 }
 
 .care-model-card {
-  padding: 1.1rem 1.15rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(3, 152, 158, 0.15);
-  background: #fff;
-  box-shadow: 0 10px 30px -20px rgba(2, 100, 105, 0.35);
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(3, 152, 158, 0.18);
+  background: #0b3f43;
+  aspect-ratio: 16 / 11;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 18px 36px -22px rgba(2, 100, 105, 0.55);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease;
+}
+
+.care-model-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 24px 44px -18px rgba(2, 100, 105, 0.55);
+}
+
+.care-model-card__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.care-model-card:hover .care-model-card__image {
+  transform: scale(1.04);
+}
+
+.care-model-card__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(2, 60, 64, 0.05) 35%,
+    rgba(2, 60, 64, 0.72) 100%
+  );
+  pointer-events: none;
+}
+
+.care-model-card__content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 1rem 1.05rem 1.05rem;
 }
 
 .care-model-card__step {
   display: inline-flex;
-  margin-bottom: 0.55rem;
-  padding: 0.2rem 0.55rem;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  padding: 0.22rem 0.55rem;
   border-radius: 999px;
   font-size: 0.68rem;
   font-weight: 800;
+  letter-spacing: 0.04em;
   color: #026469;
-  background: #ebf8f8;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 16px -10px rgba(0, 0, 0, 0.45);
 }
 
 .care-model-card__title {
-  margin: 0 0 0.4rem;
-  font-size: 1rem;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.care-model-card__text {
   margin: 0;
-  font-size: 0.88rem;
-  line-height: 1.55;
-  color: #64748b;
-}
-
-.care-model-section__philosophy {
-  margin: 1.25rem 0 0;
-  padding: 0.85rem 1rem;
-  border-radius: 0.85rem;
-  border: 1px dashed rgba(3, 152, 158, 0.3);
-  background: rgba(235, 248, 248, 0.65);
-  font-size: 0.9rem;
-  color: #334155;
-  text-align: center;
+  font-size: clamp(1.05rem, 2.2vw, 1.2rem);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.25);
 }
 
 .faq-section__list {

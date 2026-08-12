@@ -41,11 +41,20 @@ export const features: FeatureItem[] = [
 
 export const services: ServiceItem[] = getHomeServiceCards();
 
+/** Practical clinic facts — used in home stats strip (footer keeps its own copy). */
 export const statistics: StatisticItem[] = [
-  { id: "disciplines", value: "6+", label: "Healthcare Disciplines" },
+  { id: "disciplines", value: "7+", label: "Healthcare Disciplines" },
   { id: "hours", value: "9am–9pm", label: "Daily Clinic Hours" },
   { id: "languages", value: "3", label: "Languages Supported" },
-  { id: "parking", value: "✓", label: "Parking Available" },
+  { id: "parking", value: "Yes", label: "Parking Available" },
+];
+
+/** Hero highlights — distinct from footer/hours cards so the first screen is not duplicated. */
+export const heroHighlights: StatisticItem[] = [
+  { id: "integrative", value: "Whole-Person", label: "Integrative Care Model" },
+  { id: "therapies", value: "Therapies+", label: "Speech, Physio, OT & Psychology" },
+  { id: "nutrition", value: "Nutrition", label: "Diet & Nutrition Support" },
+  { id: "connected", value: "One Clinic", label: "All Services Under One Roof" },
 ];
 
 export const featuredDoctors: FeaturedDoctor[] = [
@@ -58,7 +67,7 @@ export const featuredDoctors: FeaturedDoctor[] = [
   },
   {
     id: "therapy",
-    name: "Therapeutic Services Team",
+    name: "Other Therapeutic Services Team",
     specialization: "Speech · Physio · OT · Psychology",
     qualifications: "Multidisciplinary therapeutic care",
     initials: "TS",
@@ -115,8 +124,6 @@ export const testimonials: Testimonial[] = [
 export const whyChooseSection = {
   eyebrow: "Why Premier Care?",
   title: "Healthcare Designed Around the Whole You",
-  description:
-    "We bring together multiple healthcare disciplines to create a more complete, compassionate, and personalized care experience.",
 } as const;
 
 export const specialtiesSection = {
