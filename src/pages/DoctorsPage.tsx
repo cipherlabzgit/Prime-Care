@@ -10,6 +10,7 @@ import { useDiscoverSessions } from "../hooks/useDiscoverSessions";
 import {
   buildDoctorDirectory,
   fetchPublicDoctors,
+  fetchPublicSpecializations,
 } from "../services/doctorService";
 import { emptyDoctorFilters } from "../types/doctorFilters";
 import {
@@ -28,6 +29,9 @@ function DoctorsPage() {
   const [apiDoctors, setApiDoctors] = useState<
     Awaited<ReturnType<typeof fetchPublicDoctors>>
   >([]);
+  const [catalogSpecializations, setCatalogSpecializations] = useState<string[]>(
+    [],
+  );
   const [apiDoctorsLoaded, setApiDoctorsLoaded] = useState(false);
   const [filters, setFilters] = useState(emptyDoctorFilters);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -35,23 +39,36 @@ function DoctorsPage() {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadDoctors() {
-      try {
-        const data = await fetchPublicDoctors();
-        if (!cancelled) setApiDoctors(data);
-      } catch (err) {
-        if (!cancelled) {
-          console.warn(
-            "[DoctorsPage] Public doctors API unavailable — using discover sessions.",
-            err,
-          );
-        }
-      } finally {
-        if (!cancelled) setApiDoctorsLoaded(true);
+    async function loadDirectory() {
+      const [doctorsResult, specsResult] = await Promise.allSettled([
+        fetchPublicDoctors(),
+        fetchPublicSpecializations(),
+      ]);
+
+      if (cancelled) return;
+
+      if (doctorsResult.status === "fulfilled") {
+        setApiDoctors(doctorsResult.value);
+      } else {
+        console.warn(
+          "[DoctorsPage] Public doctors API unavailable — using discover sessions.",
+          doctorsResult.reason,
+        );
       }
+
+      if (specsResult.status === "fulfilled") {
+        setCatalogSpecializations(specsResult.value);
+      } else {
+        console.warn(
+          "[DoctorsPage] Public specializations API unavailable — using doctor/session names.",
+          specsResult.reason,
+        );
+      }
+
+      setApiDoctorsLoaded(true);
     }
 
-    void loadDoctors();
+    void loadDirectory();
     return () => {
       cancelled = true;
     };
@@ -72,8 +89,8 @@ function DoctorsPage() {
   );
 
   const filterOptions = useMemo(
-    () => deriveDoctorFilterOptions(doctors, sessions),
-    [doctors, sessions],
+    () => deriveDoctorFilterOptions(doctors, sessions, catalogSpecializations),
+    [doctors, sessions, catalogSpecializations],
   );
 
   const filteredDoctors = useMemo(

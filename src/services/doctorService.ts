@@ -7,6 +7,7 @@ import { resolveDoctorAvailability } from "../utils/doctorAvailability";
 import { getSessionDoctorName } from "../utils/doctorDisplayUtils";
 
 const PUBLIC_DOCTORS_URL = `${CHANNELING_API_ORIGIN}/api/channeling/public/doctors`;
+const PUBLIC_SPECIALIZATIONS_URL = `${CHANNELING_API_ORIGIN}/api/channeling/public/specializations`;
 
 export interface PublicDoctorApi {
   doctorId: number;
@@ -98,6 +99,47 @@ export async function fetchPublicDoctors(): Promise<
     PublicDoctorApi[] | { value?: PublicDoctorApi[]; data?: PublicDoctorApi[] }
   >(PUBLIC_DOCTORS_URL);
   return normalizePublicDoctors(data);
+}
+
+export interface PublicSpecializationApi {
+  id?: number | string;
+  name?: string | null;
+  specialization?: string | null;
+  specializationName?: string | null;
+}
+
+function unwrapList<T>(
+  data: T[] | { value?: T[]; data?: T[] } | null | undefined,
+): T[] {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.data)) return data.data;
+  if (data && Array.isArray(data.value)) return data.value;
+  return [];
+}
+
+function normalizeSpecializationName(
+  raw: PublicSpecializationApi | string,
+): string | undefined {
+  if (typeof raw === "string") return trimOptional(raw);
+  return (
+    trimOptional(raw.name) ??
+    trimOptional(raw.specialization) ??
+    trimOptional(raw.specializationName)
+  );
+}
+
+export async function fetchPublicSpecializations(): Promise<string[]> {
+  const { data } = await axios.get<
+    | PublicSpecializationApi[]
+    | string[]
+    | { value?: PublicSpecializationApi[] | string[]; data?: PublicSpecializationApi[] | string[] }
+  >(PUBLIC_SPECIALIZATIONS_URL);
+
+  const names = unwrapList(data)
+    .map(normalizeSpecializationName)
+    .filter((name): name is string => Boolean(name) && name !== "-");
+
+  return [...new Set(names)].sort((a, b) => a.localeCompare(b));
 }
 
 interface SessionDoctorStats {
