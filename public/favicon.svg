@@ -1,12 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Premier Care">
-  <!-- Simplified official mark: teal + gold open cross -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Premier Care Integrative Clinic">
   <rect width="64" height="64" rx="12" fill="#ffffff"/>
-  <path
-    fill="#03989E"
-    d="M14 12h22a4 4 0 0 1 4 4v10H28a8 8 0 0 0-8 8v18h-6a4 4 0 0 1-4-4V16a4 4 0 0 1 4-4z"
-  />
-  <path
-    fill="#FFC85E"
-    d="M28 28h22a4 4 0 0 1 4 4v18a4 4 0 0 1-4 4H28V28z"
-  />
+  <g fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path stroke="#03989E" d="M32 26V18h-8a8 8 0 0 0-8 8v8h8"/>
+    <path stroke="#FFC85E" d="M38 32h8v8a8 8 0 0 1-8 8h-8v-8"/>
+  </g>
 </svg>
