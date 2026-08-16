@@ -160,7 +160,7 @@ export async function fetchPublicSpecializations(): Promise<string[]> {
     | { value?: PublicSpecializationApi[] | string[]; data?: PublicSpecializationApi[] | string[] }
   >(PUBLIC_SPECIALIZATIONS_URL);
 
-  const names = unwrapList(data)
+  const names = unwrapList<PublicSpecializationApi | string>(data)
     .map(normalizeSpecializationName)
     .filter((name): name is string => Boolean(name) && name !== "-");
 

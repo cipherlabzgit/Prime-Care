@@ -18,16 +18,10 @@ import {
   formatReviewLocation,
   reviewStatusClass,
 } from "../utils/reviewUtils";
-import { useDiscoverSessions } from "../hooks/useDiscoverSessions";
-import { uniqueCenters, uniqueDoctors } from "../utils/channelingUtils";
 
 function ReviewManagementPage() {
   usePageTitle("Review Management");
   const { showToast } = useToast();
-  const { sessions } = useDiscoverSessions();
-  const centers = uniqueCenters(sessions);
-  const doctors = uniqueDoctors(sessions);
-
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
