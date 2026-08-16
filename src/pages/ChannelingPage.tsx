@@ -35,6 +35,10 @@ import {
   type ChannelingSession,
 } from "../services/channelingService";
 import {
+  buildChannelingDoctorFilterOptions,
+  fetchPublicDoctors,
+} from "../services/doctorService";
+import {
   fetchActiveHolds,
   getHoldErrorMessage,
   getSlotHoldFailureKind,
@@ -48,7 +52,6 @@ import {
   filterSessions,
   getDatesForFilters,
   type ChannelingFilters as Filters,
-  uniqueDoctors,
   uniqueCenters,
   uniqueSpecializations,
 } from "../utils/channelingUtils";
@@ -136,6 +139,9 @@ function ChannelingPage() {
   const { session: patientSession } = usePatientAuth();
   const [searchParams] = useSearchParams();
   const { sessions: allSessions, loading, error, reload } = useDiscoverSessions();
+  const [apiDoctors, setApiDoctors] = useState<
+    Awaited<ReturnType<typeof fetchPublicDoctors>>
+  >([]);
 
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [hasSearched, setHasSearched] = useState(false);
@@ -182,6 +188,25 @@ function ChannelingPage() {
   useEffect(() => {
     slotHoldRef.current = slotHold;
   }, [slotHold]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchPublicDoctors()
+      .then((data) => {
+        if (!cancelled) setApiDoctors(data);
+      })
+      .catch((err) => {
+        console.warn(
+          "[ChannelingPage] Public doctors API unavailable — using discover sessions.",
+          err,
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const doctorIdParam = searchParams.get("doctorId");
 
@@ -280,8 +305,8 @@ function ChannelingPage() {
     [allSessions],
   );
   const filterDoctors = useMemo(
-    () => uniqueDoctors(allSessions),
-    [allSessions],
+    () => buildChannelingDoctorFilterOptions(allSessions, apiDoctors),
+    [allSessions, apiDoctors],
   );
   const availableDates = useMemo(
     () =>

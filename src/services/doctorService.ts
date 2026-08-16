@@ -128,6 +128,31 @@ function normalizeSpecializationName(
   );
 }
 
+export interface ChannelingDoctorFilterOption {
+  doctorId: number;
+  fullName: string;
+  designation?: string;
+  qualification?: string;
+  experienceYears?: number;
+  profileSummary?: string;
+  profilePhoto?: string;
+}
+
+export function buildChannelingDoctorFilterOptions(
+  sessions: ChannelingSession[],
+  apiDoctors: ReturnType<typeof normalizePublicDoctor>[] = [],
+): ChannelingDoctorFilterOption[] {
+  return buildDoctorDirectory(sessions, apiDoctors).map((doctor) => ({
+    doctorId: doctor.doctorId,
+    fullName: doctor.doctorName,
+    designation: doctor.designation,
+    qualification: doctor.qualification,
+    experienceYears: doctor.experienceYears,
+    profileSummary: doctor.profileSummary,
+    profilePhoto: doctor.profileImage ?? doctor.profilePhoto,
+  }));
+}
+
 export async function fetchPublicSpecializations(): Promise<string[]> {
   const { data } = await axios.get<
     | PublicSpecializationApi[]
