@@ -245,6 +245,32 @@ function pickString(
   return current;
 }
 
+function normalizeDoctorNameKey(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function preferDoctorProfile(a: DoctorProfile, b: DoctorProfile): DoctorProfile {
+  if (a.futureSessionCount !== b.futureSessionCount) {
+    return a.futureSessionCount > b.futureSessionCount ? a : b;
+  }
+  if (a.sessionCount !== b.sessionCount) {
+    return a.sessionCount > b.sessionCount ? a : b;
+  }
+  return a.doctorId < b.doctorId ? a : b;
+}
+
+function dedupeDoctorProfilesByName(profiles: DoctorProfile[]): DoctorProfile[] {
+  const byName = new Map<string, DoctorProfile>();
+
+  for (const profile of profiles) {
+    const key = normalizeDoctorNameKey(profile.doctorName);
+    const existing = byName.get(key);
+    byName.set(key, existing ? preferDoctorProfile(existing, profile) : profile);
+  }
+
+  return [...byName.values()];
+}
+
 export function buildDoctorDirectory(
   sessions: ChannelingSession[],
   apiDoctors: ReturnType<typeof normalizePublicDoctor>[] = [],
@@ -309,5 +335,7 @@ export function buildDoctorDirectory(
     } satisfies DoctorProfile;
   });
 
-  return profiles.sort((a, b) => a.doctorName.localeCompare(b.doctorName));
+  return dedupeDoctorProfilesByName(profiles).sort((a, b) =>
+    a.doctorName.localeCompare(b.doctorName),
+  );
 }
