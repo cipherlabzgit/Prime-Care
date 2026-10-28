@@ -6,20 +6,38 @@ import {
   CHANNELING_BOOKING_URL,
   MY_BOOKINGS_URL,
 } from "../utils/bookingNavigation";
+import NavbarServicesNavItem from "./NavbarServicesNavItem";
 import "../styles/navbar.css";
 
 const navItems = [
-  { label: "Home", to: "/" },
-  { label: "Services", to: "/services" },
   { label: "About Us", to: "/about" },
   { label: "Doctors", to: "/doctors" },
   { label: "Channeling", to: "/channeling" },
   { label: "Contact", to: "/contact" },
 ] as const;
 
-function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+function NavLinks({
+  onNavigate,
+  layout = "desktop",
+}: {
+  onNavigate?: () => void;
+  layout?: "desktop" | "mobile";
+}) {
   return (
     <ul className="navbar__links">
+      <li>
+        <NavLink
+          to="/"
+          className={({ isActive }) =>
+            `navbar__link${isActive ? " navbar__link--active" : ""}`
+          }
+          end
+          onClick={onNavigate}
+        >
+          Home
+        </NavLink>
+      </li>
+      <NavbarServicesNavItem layout={layout} onNavigate={onNavigate} />
       {navItems.map(({ label, to }) => (
         <li key={to}>
           <NavLink
@@ -27,7 +45,6 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             className={({ isActive }) =>
               `navbar__link${isActive ? " navbar__link--active" : ""}`
             }
-            end={to === "/"}
             onClick={onNavigate}
           >
             {label}
@@ -102,7 +119,7 @@ function Navbar() {
             className="navbar__nav navbar__nav--desktop"
             aria-label="Main navigation"
           >
-            <NavLinks />
+            <NavLinks layout="desktop" />
           </nav>
 
           <div className="navbar__actions navbar__actions--desktop">
@@ -146,7 +163,7 @@ function Navbar() {
         aria-label="Main navigation"
         aria-hidden={!menuOpen}
       >
-        <NavLinks onNavigate={closeMenu} />
+        <NavLinks layout="mobile" onNavigate={closeMenu} />
         <div className="navbar__actions navbar__actions--mobile">
           {isSignedIn && session ? (
             <div className="navbar__session navbar__session--mobile">

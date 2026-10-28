@@ -8,6 +8,7 @@ import SiteFooter from "../components/layout/SiteFooter";
 import StatisticsSection from "../components/home/StatisticsSection";
 import TestimonialsSection from "../components/home/TestimonialsSection";
 import WelcomeSection from "../components/home/WelcomeSection";
+import ExploreHealthcareServicesSection from "../components/home/ExploreHealthcareServicesSection";
 import WhyChooseUsSection from "../components/home/WhyChooseUsSection";
 import "../styles/about.css";
 import "../styles/home.css";
@@ -21,6 +22,7 @@ function HomePage() {
         <Hero />
         <WelcomeSection />
         <CareModelSection />
+        <ExploreHealthcareServicesSection />
         <WhyChooseUsSection />
         <StatisticsSection />
         <FeaturedDoctorsSection />
