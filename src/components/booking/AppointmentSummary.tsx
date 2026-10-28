@@ -66,7 +66,7 @@ function AppointmentSummary({ selection }: AppointmentSummaryProps) {
             </div>
             <div className="summary-list__row summary-list__row--highlight">
               <dt>Time Slot</dt>
-              <dd>{slot ? slot.time : "— Select a slot —"}</dd>
+              <dd>{slot ? slot.time : "Select a slot"}</dd>
             </div>
           </dl>
         )}

@@ -1,21 +1,87 @@
-function ChannelingHero() {
-  return (
-    <header className="channeling-hero relative overflow-hidden">
-      <div className="channeling-hero__pattern pointer-events-none absolute inset-0" aria-hidden="true" />
-      <div className="channeling-hero__overlay pointer-events-none absolute inset-0" aria-hidden="true" />
+import { useEffect, useRef, useState } from "react";
+import { channelingHero } from "../../data/channelingData";
 
-      <div className="relative mx-auto flex min-h-[200px] max-w-7xl flex-col justify-center px-4 py-10 sm:min-h-[220px] sm:px-6 sm:py-12 lg:min-h-[240px] lg:px-8 lg:py-14">
-        <div className="channeling-hero__content max-w-2xl animate-fade-in-up">
-          <h1 className="m-0 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
-            Channel Your Doctor
-          </h1>
-          <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/90 sm:text-base">
-            Search live clinic sessions and book your appointment online with
-            PremierCare.
+const HERO_IMAGE_URL =
+  "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790932232/Gemini_Generated_Image_bztes7bztes7bzte_nijktw.jpg";
+
+function ChannelingHero() {
+  const [scrollY, setScrollY] = useState(0);
+  const heroRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const imageScale = 1 + scrollY * 0.0004;
+  const imageTranslate = scrollY * 0.25;
+  const contentTranslate = scrollY * 0.1;
+
+  return (
+    <section
+      ref={heroRef}
+      className="about-unorthodox-hero about-unorthodox-hero--fullscreen channeling-hero-full"
+      aria-labelledby="channeling-hero-heading"
+    >
+      <div className="about-unorthodox-hero__bg-wrapper">
+        <img
+          src={HERO_IMAGE_URL}
+          alt="Premier Care clinic reception welcoming a patient at the front desk"
+          className="about-unorthodox-hero__bg-img"
+          style={{
+            transform: `scale(${imageScale}) translateY(${imageTranslate}px)`,
+          }}
+        />
+        <div className="about-unorthodox-hero__bg-overlay" />
+        <div className="about-unorthodox-hero__bg-vignette" />
+        <div className="about-unorthodox-hero__noise" />
+      </div>
+
+      <div
+        className="about-unorthodox-hero__watermark about-unorthodox-hero__watermark--light"
+        style={{ transform: `translateX(${-scrollY * 0.4}px)` }}
+        aria-hidden="true"
+      >
+        BOOK
+      </div>
+
+      <div
+        className="about-unorthodox-hero__content-fullscreen"
+        style={{ transform: `translateY(${contentTranslate}px)` }}
+      >
+        <div className="about-unorthodox-hero__eyebrow-container">
+          <span className="about-unorthodox-hero__eyebrow about-unorthodox-hero__eyebrow--dark-bg">
+            <span className="about-unorthodox-hero__eyebrow-dot" />
+            {channelingHero.eyebrow}
+          </span>
+        </div>
+
+        <h1 id="channeling-hero-heading" className="about-unorthodox-hero__title">
+          <span className="about-unorthodox-hero__title-line about-unorthodox-hero__title-line--cyan">
+            {channelingHero.titleLead}
+          </span>
+          <span className="about-unorthodox-hero__title-line about-unorthodox-hero__title-line--accent">
+            {channelingHero.titleAccent}
+          </span>
+        </h1>
+
+        <div className="about-unorthodox-hero__footer about-unorthodox-hero__footer--fullscreen">
+          <p className="about-unorthodox-hero__desc about-unorthodox-hero__desc--white">
+            {channelingHero.description}
           </p>
+
+          <div className="about-unorthodox-hero__badges-inline">
+            <div className="about-unorthodox-hero__glass-pill">
+              <span>Live session availability</span>
+            </div>
+            <div className="about-unorthodox-hero__glass-pill">
+              <span>Secure online checkout</span>
+            </div>
+          </div>
         </div>
       </div>
-    </header>
+    </section>
   );
 }
 

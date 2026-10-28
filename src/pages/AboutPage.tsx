@@ -1,20 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { USER_MESSAGES } from "../utils/userMessages";
-import { Link } from "react-router-dom";
 import AboutHero from "../components/about/AboutHero";
 import LeadershipTeam from "../components/about/LeadershipTeam";
+import AboutWhyChoose from "../components/about/AboutWhyChoose";
 import Navbar from "../components/Navbar";
 import SiteFooter from "../components/layout/SiteFooter";
 import ScrollReveal from "../components/home/ScrollReveal";
-import SectionHeader from "../components/home/SectionHeader";
 import FeaturedReviews from "../components/reviews/FeaturedReviews";
 import ReviewSortControls from "../components/reviews/ReviewSortControls";
 import ReviewStatistics from "../components/reviews/ReviewStatistics";
 import ReviewSubmissionForm from "../components/reviews/ReviewSubmissionForm";
 import TestimonialCard from "../components/reviews/TestimonialCard";
 import PageState from "../components/ui/PageState";
-import { aboutWhyChoose } from "../data/aboutData";
 import {
   fetchApprovedReviews,
   fetchReviewStats,
@@ -22,8 +20,11 @@ import {
 } from "../services/reviewService";
 import type { Review, ReviewSortOption, ReviewStats } from "../types/review";
 import { sortReviews } from "../utils/reviewUtils";
+import ServicesCtaSection from "../components/services/ServicesCtaSection";
+import { aboutCta } from "../data/aboutData";
 import "../styles/about.css";
 import "../styles/home.css";
+import "../styles/services.css";
 
 function AboutPage() {
   usePageTitle("About Us");
@@ -72,47 +73,40 @@ function AboutPage() {
   }, [loading]);
 
   return (
-    <div className="about-page flex min-h-svh flex-col">
+    <div className="about-page home-page flex min-h-svh flex-col">
       <Navbar />
 
       <AboutHero />
 
       <LeadershipTeam />
 
-      <section className="home-section home-section--alt" aria-labelledby="why-choose-heading">
-        <ScrollReveal>
-          <SectionHeader
-            eyebrow="Why Premier Care?"
-            title="Healthcare Designed Around the Whole You"
-            description="Premier Care delivers integrative healthcare with compassion, personalization, and a prevention-focused approach."
-          />
-        </ScrollReveal>
-        <div className="home-grid home-grid--4">
-          {aboutWhyChoose.map((item, index) => (
-            <ScrollReveal key={item.id} delay={index * 80}>
-              <article className="about-feature-card">
-                <span className="about-feature-card__icon" aria-hidden="true">
-                  {item.icon}
-                </span>
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-              </article>
-            </ScrollReveal>
-          ))}
-        </div>
-      </section>
+      {/* WHY PREMIER CARE — homepage why-choose style + carousel */}
+      <AboutWhyChoose />
 
+      {/* PATIENT STORIES — exact testimonials-section homepage style */}
       <section
-        className="home-section"
+        className="testimonials-section about-testimonials-section"
         id="reviews"
-        aria-labelledby="reviews-heading"
+        aria-labelledby="about-reviews-heading"
       >
+        <div className="testimonials-section__glow" aria-hidden="true" />
+
         <ScrollReveal>
-          <SectionHeader
-            eyebrow="Patient Stories"
-            title="Trusted by the People We Care For"
-            description="The greatest measure of our work is the experience of the people we serve. We are grateful to every patient and family who places their trust in Premier Care Integrative Clinic."
-          />
+          <header className="testimonials-section__header">
+            <div>
+              <span className="testimonials-section__eyebrow">
+                <span aria-hidden="true">✦</span>
+                Patient Stories
+              </span>
+              <h2 id="about-reviews-heading" className="testimonials-section__title">
+                Trusted by
+                <span>the People We Care For.</span>
+              </h2>
+            </div>
+            <p className="testimonials-section__intro">
+              The greatest measure of our work is the experience of the people we serve. We are grateful to every patient and family who places their trust in Premier Care Integrative Clinic.
+            </p>
+          </header>
         </ScrollReveal>
 
         <ScrollReveal delay={60}>
@@ -162,7 +156,7 @@ function AboutPage() {
         )}
 
         {!loading && !error && reviews.length > 0 && (
-          <div className="home-grid home-grid--3">
+          <div className="testimonials-section__grid">
             {sortedReviews.map((review, index) => (
               <ScrollReveal key={review.reviewId} delay={index * 60}>
                 <TestimonialCard review={review} />
@@ -172,49 +166,60 @@ function AboutPage() {
         )}
       </section>
 
+      {/* SHARE EXPERIENCE — styled like homepage care-model-section */}
       <section
-        className="home-section home-section--alt"
+        className="care-model-section home-section about-share-section"
         id="share-experience"
         aria-labelledby="share-heading"
       >
-        <div className="about-submit-layout">
-          <ScrollReveal>
-            <div className="about-submit-intro">
-              <SectionHeader
-                align="left"
-                eyebrow="Your Voice Matters"
-                title="Share Your Experience"
-                description="Verified patients can share feedback about their appointment journey. Reviews are moderated and published after approval."
-              />
-              <ul className="about-submit-notes">
-                <li>Booking reference and mobile number required</li>
-                <li>Only verified bookings can submit reviews</li>
-                <li>Pending reviews are not shown publicly</li>
-              </ul>
-            </div>
+        <ScrollReveal>
+          <header className="section-header section-header--center">
+            <span className="section-header__eyebrow">Your Voice Matters</span>
+            <h2 id="share-heading" className="about-share-section__title">
+              <span>Share Your</span>
+              <span>Experience.</span>
+            </h2>
+          </header>
+        </ScrollReveal>
+
+        <div className="about-share-layout">
+          <ScrollReveal className="about-share-intro">
+            <p className="about-share-desc">
+              Verified patients can share feedback about their appointment journey. Reviews are moderated and published after approval.
+            </p>
+            <ul className="about-share-notes">
+              <li>
+                <span className="about-share-check" aria-hidden="true">✓</span>
+                Booking reference and mobile number required
+              </li>
+              <li>
+                <span className="about-share-check" aria-hidden="true">✓</span>
+                Only verified bookings can submit reviews
+              </li>
+              <li>
+                <span className="about-share-check" aria-hidden="true">✓</span>
+                Pending reviews are not shown publicly
+              </li>
+            </ul>
           </ScrollReveal>
-          <ScrollReveal delay={100}>
-            <div className="about-submit-panel">
-              <ReviewSubmissionForm />
-            </div>
+
+          <ScrollReveal delay={100} className="about-share-form-wrapper">
+            <ReviewSubmissionForm />
           </ScrollReveal>
         </div>
       </section>
 
-      <section className="about-cta-band">
-        <div className="about-cta-band__inner">
-          <h2>Ready to begin your healthcare journey?</h2>
-          <p>Book an appointment online or contact our team for guidance on the right service for you.</p>
-          <div className="about-cta-band__actions">
-            <Link to="/channeling" className="about-cta-band__btn about-cta-band__btn--primary">
-              Book Appointment
-            </Link>
-            <Link to="/doctors" className="about-cta-band__btn about-cta-band__btn--secondary">
-              Find a Doctor
-            </Link>
-          </div>
-        </div>
-      </section>
+      <ServicesCtaSection
+        headingId="about-cta-heading"
+        eyebrow={aboutCta.eyebrow}
+        titleLead={aboutCta.titleLead}
+        titleAccent={aboutCta.titleAccent}
+        description={aboutCta.description}
+        watermark={aboutCta.watermark}
+        primaryLabel={aboutCta.primaryLabel}
+        secondaryLabel={aboutCta.secondaryLabel}
+        secondaryHref={aboutCta.secondaryHref}
+      />
 
       <SiteFooter />
     </div>

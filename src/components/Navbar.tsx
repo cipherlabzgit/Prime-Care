@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import PremierCareLogo from "./branding/PremierCareLogo";
 import { usePatientAuth } from "../context/PatientAuthContext";
 import {
@@ -40,11 +40,22 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(() => window.scrollY > 12);
+  const { pathname } = useLocation();
   const { isSignedIn, session, signOut } = usePatientAuth();
+  const isHome = pathname === "/";
+
+  useEffect(() => {
+    const updateScrolledState = () => setIsScrolled(window.scrollY > 40);
+
+    updateScrolledState();
+    window.addEventListener("scroll", updateScrolledState, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrolledState);
+  }, [pathname]);
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth > 900) setMenuOpen(false);
+      if (window.innerWidth > 1240) setMenuOpen(false);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -61,37 +72,40 @@ function Navbar() {
 
   return (
     <>
-      <header className="navbar">
-        <Link
-          to="/"
-          className="navbar__logo"
-          onClick={closeMenu}
-          aria-label="PremierCare — Home"
-        >
-          <PremierCareLogo context="header" showTagline />
-        </Link>
+      <header
+        className={`navbar${isScrolled || !isHome ? " navbar--surface" : ""}`}
+      >
+        <div className="navbar__bar">
+          <Link
+            to="/"
+            className="navbar__logo"
+            onClick={closeMenu}
+            aria-label="PremierCare Home"
+          >
+            <PremierCareLogo context="header" />
+          </Link>
 
-        <button
-          type="button"
-          className="navbar__menu-btn"
-          aria-expanded={menuOpen}
-          aria-controls="main-navigation-mobile"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          <span
-            className={`navbar__menu-icon${menuOpen ? " navbar__menu-icon--open" : ""}`}
-          />
-        </button>
+          <button
+            type="button"
+            className="navbar__menu-btn"
+            aria-expanded={menuOpen}
+            aria-controls="main-navigation-mobile"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span
+              className={`navbar__menu-icon${menuOpen ? " navbar__menu-icon--open" : ""}`}
+            />
+          </button>
 
-        <nav
-          className="navbar__nav navbar__nav--desktop"
-          aria-label="Main navigation"
-        >
-          <NavLinks />
-        </nav>
+          <nav
+            className="navbar__nav navbar__nav--desktop"
+            aria-label="Main navigation"
+          >
+            <NavLinks />
+          </nav>
 
-        <div className="navbar__actions navbar__actions--desktop">
+          <div className="navbar__actions navbar__actions--desktop">
           {isSignedIn && session ? (
             <div className="navbar__session">
               <span className="navbar__session-name" title={session.patient.fullName}>
@@ -112,8 +126,12 @@ function Navbar() {
             My Bookings
           </Link>
           <Link to={CHANNELING_BOOKING_URL} className="navbar__cta">
-            Book Appointment
+            <span>Book Appointment</span>
+            <span className="navbar__cta-arrow" aria-hidden="true">
+              →
+            </span>
           </Link>
+          </div>
         </div>
       </header>
 
@@ -156,7 +174,10 @@ function Navbar() {
             className="navbar__cta"
             onClick={closeMenu}
           >
-            Book Appointment
+            <span>Book Appointment</span>
+            <span className="navbar__cta-arrow" aria-hidden="true">
+              →
+            </span>
           </Link>
         </div>
       </nav>

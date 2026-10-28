@@ -208,7 +208,7 @@ function ChannelingFilters({
       aria-labelledby="channeling-search-title"
     >
       <h2 id="channeling-search-title" className="channeling-search-card__title">
-        Channel Your Doctor
+        Find a <span>session</span>
       </h2>
 
       <form className="channeling-search-card__form" onSubmit={handleSubmit}>

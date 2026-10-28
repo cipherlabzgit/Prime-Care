@@ -1,10 +1,15 @@
+import { useState } from "react";
 import type { ChannelingSession } from "../../services/channelingService";
 import {
   formatDisplayDate,
   formatTime,
+  getInitials,
 } from "../../utils/channelingUtils";
-import { getSessionDoctorName } from "../../utils/doctorDisplayUtils";
-import DoctorAvatar from "../ui/DoctorAvatar";
+import {
+  getQualificationDisplay,
+  getSessionDoctorName,
+  resolveDoctorPhotoUrl,
+} from "../../utils/doctorDisplayUtils";
 
 interface ChannelingSessionResultRowProps {
   session: ChannelingSession;
@@ -17,55 +22,109 @@ function ChannelingSessionResultRow({
   isActive,
   onSelect,
 }: ChannelingSessionResultRowProps) {
+  const [imgError, setImgError] = useState(false);
   const doctorName = getSessionDoctorName(session);
+  const qualification = getQualificationDisplay(session.qualification);
+  const photoUrl = resolveDoctorPhotoUrl(
+    session.profileImage ?? session.profilePhoto,
+  );
+  const showPhoto = Boolean(photoUrl) && !imgError;
   const noSlots = session.availableSlotCount <= 0;
+  const sessionWhen = `${formatDisplayDate(session.sessionDate)} · ${formatTime(session.startTime)} – ${formatTime(session.endTime)}`;
+  const roomLabel = session.roomCode ? `Room ${session.roomCode}` : null;
 
   return (
     <article
-      className={`channeling-result-row${
-        isActive ? " channeling-result-row--active" : ""
-      }`}
+      className={`channeling-result-card${
+        isActive ? " channeling-result-card--active" : ""
+      }${noSlots ? " channeling-result-card--full" : ""}`}
     >
-      <div className="channeling-result-row__profile">
-        <DoctorAvatar
-          name={doctorName}
-          photo={session.profileImage ?? session.profilePhoto}
-          size="md"
-        />
-        <span className="channeling-result-row__profile-label">Profile</span>
+      <div className="channeling-result-card__photo-shell">
+        <div className="channeling-result-card__photo-frame">
+          {showPhoto ? (
+            <img
+              src={photoUrl}
+              alt=""
+              className="channeling-result-card__photo"
+              loading="lazy"
+              decoding="async"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="channeling-result-card__photo-fallback" aria-hidden="true">
+              <span>{getInitials(doctorName)}</span>
+            </div>
+          )}
+        </div>
+        {!noSlots ? (
+          <span className="channeling-result-card__slots">
+            {session.availableSlotCount} slot
+            {session.availableSlotCount === 1 ? "" : "s"} left
+          </span>
+        ) : (
+          <span className="channeling-result-card__slots channeling-result-card__slots--muted">
+            No slots
+          </span>
+        )}
       </div>
 
-      <div className="channeling-result-row__info">
-        <h3 className="channeling-result-row__name">{doctorName}</h3>
-        <p className="channeling-result-row__spec">{session.specialization}</p>
-        <p className="channeling-result-row__meta">
-          {formatDisplayDate(session.sessionDate)} · {formatTime(session.startTime)} –{" "}
-          {formatTime(session.endTime)}
-          {session.roomCode ? ` · Room ${session.roomCode}` : ""}
-        </p>
-      </div>
+      <div className="channeling-result-card__body">
+        <h3 className="channeling-result-card__name">{doctorName}</h3>
 
-      <button
-        type="button"
-        className="channeling-result-row__channel"
-        disabled={noSlots}
-        onClick={onSelect}
-      >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          aria-hidden="true"
+        {session.experienceYears != null &&
+        Number.isFinite(session.experienceYears) ? (
+          <p className="channeling-result-card__experience">
+            <strong>{session.experienceYears}</strong> years experience
+          </p>
+        ) : null}
+
+        <div className="channeling-result-card__detail">
+          <span className="channeling-result-card__detail-label">
+            Specialization
+          </span>
+          <p className="channeling-result-card__detail-text">
+            {session.specialization}
+          </p>
+          {session.designation ? (
+            <p
+              className="channeling-result-card__detail-text channeling-result-card__detail-text--muted"
+            >
+              {session.designation}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="channeling-result-card__detail">
+          <span className="channeling-result-card__detail-label">
+            Qualifications
+          </span>
+          <p
+            className="channeling-result-card__detail-text channeling-result-card__detail-text--qual"
+          >
+            {qualification ?? "Available at the clinic."}
+          </p>
+        </div>
+
+        <div className="channeling-result-card__session">
+          <span className="channeling-result-card__detail-label">Session</span>
+          <p className="channeling-result-card__session-when">{sessionWhen}</p>
+          {roomLabel ? (
+            <p className="channeling-result-card__session-room">{roomLabel}</p>
+          ) : null}
+          <p className="channeling-result-card__session-center">
+            {session.centerName}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className="channeling-result-card__cta"
+          disabled={noSlots}
+          onClick={onSelect}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M4.5 12.75l6 3.75 9-9.75M12 3.75c-2.4 2.1-4.2 4.35-5.25 6.75-.75 1.8-1.05 3.45-.9 4.95 2.1.45 4.2.3 6.3-.45 2.55-.9 4.8-2.55 6.6-4.8"
-          />
-        </svg>
-        {isActive ? "Selected" : "Channel"}
-      </button>
+          {isActive ? "Selected" : "Channel doctor"}
+        </button>
+      </div>
     </article>
   );
 }

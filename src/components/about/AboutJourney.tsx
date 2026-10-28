@@ -9,7 +9,7 @@ function AboutJourney() {
           From Assessment to Thriving
         </h2>
         <p className="about-section__subtitle">
-          Our care philosophy guides every patient journey — Assess, Understand, Personalize,
+          Our care philosophy guides every patient journey: Assess, Understand, Personalize,
           Treat &amp; Support, Prevent, and Thrive.
         </p>
       </div>

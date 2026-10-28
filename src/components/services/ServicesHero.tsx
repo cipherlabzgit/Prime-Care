@@ -1,70 +1,95 @@
-import { useState } from "react";
-import ScrollReveal from "../home/ScrollReveal";
+import { useEffect, useRef, useState } from "react";
 import { servicesHero } from "../../data/servicesData";
 
-function ServicesHeroVisual() {
-  const [imageError, setImageError] = useState(false);
-
-  return (
-    <div className="services-hero__visual" aria-hidden="true">
-      <div className="services-hero__image-shell">
-        {!imageError ? (
-          <img
-            className="services-hero__image"
-            src={servicesHero.image}
-            alt=""
-            width={560}
-            height={480}
-            loading="eager"
-            decoding="async"
-            onError={() => setImageError(true)}
-          />
-        ) : null}
-        <div
-          className={`services-hero__image-fallback${
-            imageError ? " services-hero__image-fallback--visible" : ""
-          }`}
-        >
-          <span className="services-hero__fallback-icon">🩺</span>
-          <span>Clinical Care</span>
-        </div>
-        <div className="services-hero__image-overlay" />
-      </div>
-      <div className="services-hero__float services-hero__float--care">
-        <span aria-hidden="true">✓</span>
-        <div>
-          <strong>Verified Specialists</strong>
-          <span>Board-certified consultants</span>
-        </div>
-      </div>
-      <div className="services-hero__float services-hero__float--booking">
-        <span aria-hidden="true">📅</span>
-        <div>
-          <strong>Easy Booking</strong>
-          <span>Online channeling</span>
-        </div>
-      </div>
-    </div>
-  );
-}
+const HERO_IMAGE_URL =
+  "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790926853/Gemini_Generated_Image_eyeqi0eyeqi0eyeq_wtowno.jpg";
 
 function ServicesHero() {
+  const [scrollY, setScrollY] = useState(0);
+  const heroRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const imageScale = 1 + scrollY * 0.0004;
+  const imageTranslate = scrollY * 0.25;
+  const contentTranslate = scrollY * 0.1;
+  const [titleLead, titleAccent] = servicesHero.title.split(" ");
+
   return (
-    <section className="services-hero" aria-labelledby="services-hero-heading">
-      <div className="services-hero__pattern" aria-hidden="true" />
-      <div className="services-hero__layout">
-        <div className="services-hero__content">
-          <ScrollReveal>
-            <span className="services-hero__eyebrow">{servicesHero.eyebrow}</span>
-            <h1 id="services-hero-heading" className="services-hero__title">
-              {servicesHero.title}
-            </h1>
-            <p className="services-hero__description">{servicesHero.description}</p>
-          </ScrollReveal>
+    <section
+      ref={heroRef}
+      className="about-unorthodox-hero about-unorthodox-hero--fullscreen"
+      aria-labelledby="svc-hero-heading"
+    >
+      <div className="about-unorthodox-hero__bg-wrapper">
+        <img
+          src={HERO_IMAGE_URL}
+          alt="Clinician providing attentive care during a patient visit at Premier Care"
+          className="about-unorthodox-hero__bg-img"
+          style={{
+            transform: `scale(${imageScale}) translateY(${imageTranslate}px)`,
+          }}
+        />
+        <div className="about-unorthodox-hero__bg-overlay" />
+        <div className="about-unorthodox-hero__bg-vignette" />
+        <div className="about-unorthodox-hero__noise" />
+      </div>
+
+      <div
+        className="about-unorthodox-hero__watermark about-unorthodox-hero__watermark--light"
+        style={{ transform: `translateX(${-scrollY * 0.4}px)` }}
+        aria-hidden="true"
+      >
+        SERVICES
+      </div>
+
+      <div
+        className="about-unorthodox-hero__content-fullscreen"
+        style={{ transform: `translateY(${contentTranslate}px)` }}
+      >
+        <div className="about-unorthodox-hero__eyebrow-container">
+          <span className="about-unorthodox-hero__eyebrow about-unorthodox-hero__eyebrow--dark-bg">
+            <span className="about-unorthodox-hero__eyebrow-dot" />
+            {servicesHero.eyebrow}
+          </span>
         </div>
-        <ScrollReveal delay={120}>
-          <ServicesHeroVisual />
-        </ScrollReveal>
+
+        <h1 id="svc-hero-heading" className="about-unorthodox-hero__title">
+          <span className="about-unorthodox-hero__title-line about-unorthodox-hero__title-line--cyan">
+            {titleLead}
+          </span>
+          {titleAccent ? (
+            <span className="about-unorthodox-hero__title-line about-unorthodox-hero__title-line--accent">
+              {titleAccent}
+            </span>
+          ) : null}
+        </h1>
+
+        <div className="about-unorthodox-hero__footer about-unorthodox-hero__footer--fullscreen">
+          <p className="about-unorthodox-hero__desc about-unorthodox-hero__desc--white">
+            {servicesHero.description}
+          </p>
+
+          <div className="about-unorthodox-hero__badges-inline">
+            <div className="about-unorthodox-hero__glass-pill">
+              <span>7+ Healthcare Disciplines</span>
+            </div>
+            <div className="about-unorthodox-hero__glass-pill">
+              <span>One Connected Clinic</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="about-unorthodox-hero__scroll-indicator about-unorthodox-hero__scroll-indicator--white">
+          <div className="about-unorthodox-hero__scroll-line about-unorthodox-hero__scroll-line--white" />
+          <span>Scroll to Explore</span>
+        </div>
       </div>
     </section>
   );

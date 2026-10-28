@@ -35,13 +35,6 @@ export const footerTrustItems = [
   { label: "Open Every Day 9am to 9pm" },
 ] as const;
 
-export const footerTrustStats = [
-  { value: "7+", label: "Healthcare Disciplines" },
-  { value: "9am–9pm", label: "Daily Clinic Hours" },
-  { value: "3", label: "Languages Supported" },
-  { value: "Yes", label: "Parking Available" },
-] as const;
-
 export const footerContact = {
   phone: clinicInfo.phone,
   phoneHref: clinicInfo.phoneHref,
@@ -51,6 +44,6 @@ export const footerContact = {
 } as const;
 
 export const footerBranding = {
-  tagline: `${clinicInfo.tagline} — ${clinicInfo.shortName} at ${clinicInfo.address.line1}, ${clinicInfo.address.line2}.`,
+  tagline: `${clinicInfo.tagline}. ${clinicInfo.shortName} at ${clinicInfo.address.line1}, ${clinicInfo.address.line2}.`,
   copyright: `© ${new Date().getFullYear()} ${clinicInfo.name}. All rights reserved.`,
 } as const;

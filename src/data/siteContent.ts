@@ -24,7 +24,7 @@ export const clinicInfo = {
 
 export const homeHero = {
   badge: "Premier Care Integrative Clinic",
-  title: "Healthcare That Looks Beyond the Symptoms",
+  title: "Beyond the Symptoms",
   subtitle: clinicInfo.tagline,
   primaryCta: "Book an Appointment",
   secondaryCta: "Explore Our Services",
@@ -32,12 +32,14 @@ export const homeHero = {
 
 export const welcomeSection = {
   eyebrow: "Welcome to Premier Care",
-  title: "A More Complete Approach to Healthcare",
+  title: "Complete Care",
   lead: "Your health is more than a collection of symptoms.",
-  image: "/images/services/general-medicine.jpg",
-  imageAlt: "Premier Care Integrative Clinic consultation",
+  image:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/c_limit,w_1800/q_auto,f_auto/v1791525782/Gemini_Generated_Image_qghv0uqghv0uqghv_e008vp.png",
+  imageAlt: "Premier Care integrative clinic medical team in teal scrubs",
   paragraphs: [
-    "Every individual has a unique story—shaped by their physical health, emotional wellbeing, lifestyle, environment, experiences, and personal history. At Premier Care Integrative Clinic, we take a holistic view of that story.",
+    "Your health is more than a collection of symptoms.",
+    "Every person has a unique story, shaped by physical health, emotional wellbeing, lifestyle, and personal history. At Premier Care, we look at that whole story.",
   ],
   disciplinesIntro:
     "Our approach brings together multiple healthcare disciplines, including:",
@@ -70,42 +72,48 @@ export const careModelSteps = [
     id: "assess",
     step: "01",
     title: "Assess",
-    image: "/images/care-model/assess.png",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto/v1790925220/assess_cmxpr1.jpg",
     imageAlt: "Doctor assessing a patient during consultation",
   },
   {
     id: "understand",
     step: "02",
     title: "Understand",
-    image: "/images/care-model/understand.png",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto/v1790925218/understand_zjgtmw.jpg",
     imageAlt: "Looking deeper at lifestyle and health factors",
   },
   {
     id: "personalize",
     step: "03",
     title: "Personalize",
-    image: "/images/care-model/personalize.png",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto/v1790925220/personalize_syhgjb.jpg",
     imageAlt: "Personalized care planned around the individual",
   },
   {
     id: "treat",
     step: "04",
     title: "Treat & Support",
-    image: "/images/care-model/treat.png",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto/v1790925220/treat_rnqxex.jpg",
     imageAlt: "Caring treatment and supportive healthcare",
   },
   {
     id: "prevent",
     step: "05",
     title: "Prevent",
-    image: "/images/care-model/prevent.png",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto/v1790925219/prevent_oyowky.jpg",
     imageAlt: "Preventive care protecting long-term health",
   },
   {
     id: "thrive",
     step: "06",
     title: "Thrive",
-    image: "/images/care-model/thrive.png",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto/v1790925220/thrive_hqdn3d.jpg",
     imageAlt: "Living actively and thriving in good health",
   },
 ] as const;

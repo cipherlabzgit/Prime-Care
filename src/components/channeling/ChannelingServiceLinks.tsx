@@ -10,8 +10,8 @@ function ChannelingServiceLinks() {
       className="channeling-service-links"
       aria-labelledby="channeling-services-heading"
     >
-      <h2 id="channeling-services-heading" className="sr-only">
-        Our services
+      <h2 id="channeling-services-heading" className="channeling-service-links__heading">
+        Explore our <span className="channeling-service-links__heading-accent">services</span>
       </h2>
       <div className="mb-5 flex flex-wrap items-center justify-center gap-3">
         <Link

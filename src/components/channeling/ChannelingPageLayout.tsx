@@ -30,10 +30,10 @@ function ChannelingPageLayout({
       <Navbar />
 
       {!isResults ? (
-        <div className="channeling-page__top relative">
+        <div className="channeling-page__top">
           <ChannelingHero />
           {searchCard ? (
-            <div className="channeling-page__search relative z-20 mx-auto -mt-16 w-full max-w-xl px-4 sm:-mt-20 sm:px-6 lg:px-8">
+            <div className="channeling-page__search channeling-page__search--overlap">
               {searchCard}
             </div>
           ) : null}
@@ -41,7 +41,7 @@ function ChannelingPageLayout({
       ) : null}
 
       {isResults && searchBar ? (
-        <div className="channeling-page__bar sticky top-0 z-30 border-b border-slate-200 bg-white shadow-sm">
+        <div className="channeling-page__bar sticky top-[4.25rem] z-30 sm:top-[4.5rem]">
           <div className="mx-auto max-w-7xl px-3 py-3 sm:px-6 lg:px-8">
             {searchBar}
           </div>
@@ -54,8 +54,8 @@ function ChannelingPageLayout({
           aria-hidden="true"
         />
         <div
-          className={`relative mx-auto max-w-7xl px-4 pb-8 sm:px-6 sm:pb-10 lg:px-8 ${
-            isResults ? "pt-5 sm:pt-6" : "pt-8 sm:pt-10"
+          className={`relative mx-auto max-w-7xl px-4 pb-10 sm:px-6 sm:pb-12 lg:px-8 ${
+            isResults ? "pt-5 sm:pt-6" : "pt-4 sm:pt-6"
           }`}
         >
           {children}

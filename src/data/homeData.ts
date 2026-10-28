@@ -20,7 +20,7 @@ export const features: FeatureItem[] = [
     id: "integrative",
     title: "Integrative Care",
     description:
-      "Homeopathy, therapeutic services, psychological care, diagnostics, wellness, and preventive healthcare—connected in one clinic.",
+      "Homeopathy, therapeutic services, psychological care, diagnostics, wellness, and preventive healthcare, connected in one clinic.",
     icon: "centers",
   },
   {
@@ -34,7 +34,7 @@ export const features: FeatureItem[] = [
     id: "prevention",
     title: "Prevention-Focused",
     description:
-      "We encourage proactive steps toward maintaining and improving long-term wellbeing—not only treating today's concerns.",
+      "We encourage proactive steps toward maintaining and improving long-term wellbeing, not only treating today's concerns.",
     icon: "booking",
   },
 ];
@@ -56,6 +56,9 @@ export const heroHighlights: StatisticItem[] = [
   { id: "nutrition", value: "Nutrition", label: "Diet & Nutrition Support" },
   { id: "connected", value: "One Clinic", label: "All Services Under One Roof" },
 ];
+
+/** Homepage “Our Doctors” row — doctorId from discover seed (excludes Deemanthe). */
+export const featuredDoctorIds = [1, 2, 4] as const;
 
 export const featuredDoctors: FeaturedDoctor[] = [
   {
@@ -115,7 +118,7 @@ export const testimonials: Testimonial[] = [
     name: "Verified Patient",
     role: "Patient · Colombo",
     quote:
-      "From consultation to follow-up, the team treated me with dignity and respect. I felt heard—not just another appointment.",
+      "From consultation to follow-up, the team treated me with dignity and respect. I felt heard, not just another appointment.",
     rating: 5,
     initials: "VP",
   },
@@ -130,7 +133,7 @@ export const specialtiesSection = {
   eyebrow: "Our Services",
   title: "Comprehensive Care. One Connected Experience.",
   description:
-    "From Homeopathy and therapeutic services to wellness, laboratory support, and corporate healthcare—we support you at every stage of your health journey.",
+    "From Homeopathy and therapeutic services to wellness, laboratory support, and corporate healthcare, we support you at every stage of your health journey.",
   cta: "Explore All Services",
 } as const;
 
@@ -138,7 +141,7 @@ export const ctaSection = {
   eyebrow: "Appointments",
   title: "Your Healthcare Journey Starts With One Step",
   description:
-    "Book your preferred service, practitioner, date, and time through our online appointment system—or contact our team for assistance.",
+    "Book your preferred service, practitioner, date, and time through our online appointment system, or contact our team for assistance.",
   primaryCta: "Book an Appointment",
   secondaryCta: "Contact Our Team",
 } as const;

@@ -8,7 +8,10 @@ import {
   formatDoctorDisplayName,
   getSessionDoctorName,
 } from "../utils/doctorDisplayUtils";
+import { channelingLandingHint } from "../data/channelingData";
 import "../styles/about.css";
+import "../styles/home.css";
+import "../styles/channeling-site.css";
 import ChannelingBookingFormView from "../components/channeling/ChannelingBookingFormView";
 import ChannelingDoctorSessionsView from "../components/channeling/ChannelingDoctorSessionsView";
 import ChannelingFilters from "../components/channeling/ChannelingFilters";
@@ -739,7 +742,7 @@ function ChannelingPage() {
       setSelectedSlot(null);
       setCheckoutStep("details");
       setSubmitError(
-        "Your slot hold expired. The time slot was released — please select a slot again.",
+        "Your slot hold expired. The time slot was released. Please select a slot again.",
       );
       if (bookingSession) {
         const refreshed = await syncSlotsWithHolds(bookingSession.sessionId, null);
@@ -981,12 +984,15 @@ function ChannelingPage() {
       )}
 
       {!loading && !error && !hasSearched && (
-        <div className="mx-auto max-w-lg rounded-3xl border border-dashed border-brand-200/70 bg-white/80 px-5 py-8 text-center shadow-sm">
-          <p className="text-base font-bold text-slate-800">Find your specialist</p>
-          <p className="mt-1 text-sm font-medium text-slate-600">
-            Search by doctor, specialization, hospital, or date to view available
-            sessions.
-          </p>
+        <div className="channeling-landing-hint">
+          <div className="channeling-landing-hint__card">
+            <p className="channeling-landing-hint__title">
+              {channelingLandingHint.title}
+            </p>
+            <p className="channeling-landing-hint__desc">
+              {channelingLandingHint.description}
+            </p>
+          </div>
         </div>
       )}
 
@@ -998,13 +1004,13 @@ function ChannelingPage() {
         {showResultsList ? (
           <div ref={sessionsSectionRef} className="min-w-0 animate-fade-in-up">
             {visibleSessions.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-5 py-10 text-center">
-                <p className="font-bold text-slate-800">
+              <div className="channeling-empty-state">
+                <p className="channeling-empty-state__title">
                   {selectedDoctorName
                     ? `No available sessions for ${formatDoctorDisplayName(selectedDoctorName)}`
                     : "No sessions found"}
                 </p>
-                <p className="mt-1 text-sm font-medium text-slate-600">
+                <p className="channeling-empty-state__desc">
                   {selectedDoctorName
                     ? "This doctor has no upcoming channeling sessions. Try another specialist or check back later."
                     : "Adjust your search and try again."}

@@ -74,9 +74,9 @@ function ChannelingResultsList({
             </h2>
           </header>
 
-          <ul className="channeling-results__list">
+          <ul className="channeling-results__grid">
             {group.sessions.map((session) => (
-              <li key={session.sessionId}>
+              <li key={session.sessionId} className="channeling-results__grid-item">
                 <ChannelingSessionResultRow
                   session={session}
                   isActive={activeSessionId === session.sessionId}

@@ -13,14 +13,21 @@ export function Skeleton({ className = "" }: SkeletonProps) {
 
 export function DoctorCardSkeleton() {
   return (
-    <CardSkeleton className="flex min-h-[320px] flex-col items-center p-6">
-      <Skeleton className="mb-4 h-20 w-20 rounded-full" />
-      <Skeleton className="mb-2 h-5 w-3/4" />
-      <Skeleton className="mb-4 h-4 w-1/2 rounded-full" />
-      <Skeleton className="mb-2 h-4 w-full" />
-      <Skeleton className="mb-4 h-4 w-full" />
-      <Skeleton className="mt-auto h-10 w-full rounded-xl" />
-    </CardSkeleton>
+    <div
+      className="unorthodox-leader-card doctor-directory-card animate-pulse"
+      aria-hidden="true"
+    >
+      <div className="unorthodox-leader-card__hero">
+        <Skeleton className="mx-auto aspect-square w-[min(78%,12.5rem)] !rounded-[42%_58%_52%_48%]" />
+        <Skeleton className="mx-auto h-9 w-40 !rounded-full" />
+      </div>
+      <div className="unorthodox-leader-card__content">
+        <Skeleton className="mx-auto mb-2 h-5 w-4/5 !rounded-lg" />
+        <Skeleton className="mb-2 h-16 w-full !rounded-xl" />
+        <Skeleton className="mb-3 h-12 w-full !rounded-lg" />
+        <Skeleton className="h-11 w-full !rounded-full" />
+      </div>
+    </div>
   );
 }
 

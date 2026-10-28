@@ -117,7 +117,7 @@ export function getBookingBlockMessage(options: {
     return "Select a time slot to continue.";
   }
   if (options.pendingProfileAcceptance) {
-    return 'We found your profile — tap "Use existing profile" above to continue.';
+    return 'We found your profile. Tap "Use existing profile" above to continue.';
   }
   const messages = Object.values(options.errors).filter(
     (message): message is string => Boolean(message),

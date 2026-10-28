@@ -3,7 +3,11 @@ import { usePageTitle } from "../hooks/usePageTitle";
 import { USER_MESSAGES } from "../utils/userMessages";
 import DoctorFiltersPanel from "../components/doctors/DoctorFiltersPanel";
 import DoctorProfileCard from "../components/doctors/DoctorProfileCard";
-import PortalShell from "../components/layout/PortalShell";
+import DoctorsHero from "../components/doctors/DoctorsHero";
+import Navbar from "../components/Navbar";
+import SiteFooter from "../components/layout/SiteFooter";
+import ServicesCtaSection from "../components/services/ServicesCtaSection";
+import ScrollReveal from "../components/home/ScrollReveal";
 import PageState from "../components/ui/PageState";
 import { DoctorCardSkeleton } from "../components/ui/Skeleton";
 import { useDiscoverSessions } from "../hooks/useDiscoverSessions";
@@ -12,6 +16,7 @@ import {
   fetchPublicDoctors,
   fetchPublicSpecializations,
 } from "../services/doctorService";
+import { doctorsCta, doctorsDirectoryIntro } from "../data/doctorsData";
 import { emptyDoctorFilters } from "../types/doctorFilters";
 import {
   countActiveDoctorFilters,
@@ -20,6 +25,9 @@ import {
   getDoctorResultsLabel,
   hasActiveDoctorFilters,
 } from "../utils/doctorFilters";
+import "../styles/about.css";
+import "../styles/home.css";
+import "../styles/services.css";
 import "../styles/doctors-page.css";
 
 function DoctorsPage() {
@@ -29,9 +37,9 @@ function DoctorsPage() {
   const [apiDoctors, setApiDoctors] = useState<
     Awaited<ReturnType<typeof fetchPublicDoctors>>
   >([]);
-  const [catalogSpecializations, setCatalogSpecializations] = useState<string[]>(
-    [],
-  );
+  const [catalogSpecializations, setCatalogSpecializations] = useState<
+    string[]
+  >([]);
   const [apiDoctorsLoaded, setApiDoctorsLoaded] = useState(false);
   const [filters, setFilters] = useState(emptyDoctorFilters);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -51,7 +59,7 @@ function DoctorsPage() {
         setApiDoctors(doctorsResult.value);
       } else {
         console.warn(
-          "[DoctorsPage] Public doctors API unavailable — using discover sessions.",
+          "[DoctorsPage] Public doctors API unavailable; using discover sessions.",
           doctorsResult.reason,
         );
       }
@@ -60,7 +68,7 @@ function DoctorsPage() {
         setCatalogSpecializations(specsResult.value);
       } else {
         console.warn(
-          "[DoctorsPage] Public specializations API unavailable — using doctor/session names.",
+          "[DoctorsPage] Public specializations API unavailable; using doctor/session names.",
           specsResult.reason,
         );
       }
@@ -114,167 +122,221 @@ function DoctorsPage() {
   };
 
   return (
-    <PortalShell
-      badge="Medical Directory"
-      title="Our Doctors"
-      subtitle="Browse verified consultants with live channeling sessions across partner hospitals and clinics."
-    >
-      <div className="doctors-page">
-        {loading && (
-          <div
-            className="doctors-grid"
-            aria-busy="true"
-            aria-label="Loading doctors"
-          >
-            {Array.from({ length: 6 }, (_, i) => (
-              <DoctorCardSkeleton key={i} />
-            ))}
-          </div>
-        )}
+    <div className="doctors-page-site flex min-h-svh flex-col">
+      <Navbar />
+      <main className="doctors-page-main flex-1">
+        <DoctorsHero />
 
-        {!loading && error && (
-          <PageState
-            variant="error"
-            icon="network"
-            title="Unable to load doctors"
-            message={USER_MESSAGES.loadFailed}
-            onRetry={reload}
-            retryLabel="Try Again"
-          />
-        )}
+        <section
+          className="doctors-directory"
+          id="doctors-directory"
+          aria-labelledby="doctors-directory-heading"
+        >
+          <div className="doctors-directory__inner">
+            <ScrollReveal>
+              <header className="doctors-directory__header">
+                <p className="doctors-directory__eyebrow">
+                  {doctorsDirectoryIntro.eyebrow}
+                </p>
+                <h2 id="doctors-directory-heading" className="doctors-directory__title">
+                  <span>{doctorsDirectoryIntro.titleLead}</span>
+                  <span className="doctors-directory__title-accent">
+                    {doctorsDirectoryIntro.titleAccent}
+                  </span>
+                </h2>
+                <p className="doctors-directory__desc">
+                  {doctorsDirectoryIntro.description}
+                </p>
+              </header>
+            </ScrollReveal>
 
-        {!loading && !error && doctors.length === 0 && (
-          <PageState
-            variant="empty"
-            icon="doctors"
-            title="No doctors found"
-            message="There are no doctors listed right now. Try again later or book through channeling."
-            onRetry={reload}
-            retryLabel="Refresh"
-            action={{ label: "Book Appointment", href: "/channeling" }}
-          />
-        )}
-
-        {!loading && !error && doctors.length > 0 && (
-          <div className="doctors-layout">
-            <DoctorFiltersPanel
-              filters={filters}
-              options={filterOptions}
-              onChange={handleFilterChange}
-              onClearAll={handleClearFilters}
-              className="doctors-filters--desktop"
-            />
-
-            <div className="doctors-main">
-              <div className="doctors-toolbar">
-                <div className="doctors-toolbar__search-wrap">
-                  <label htmlFor="doctor-search" className="sr-only">
-                    Search doctors
-                  </label>
-                  <input
-                    id="doctor-search"
-                    type="search"
-                    className="doctors-toolbar__search"
-                    placeholder="Search by name, qualification, or specialization…"
-                    value={filters.searchQuery}
-                    onChange={(e) =>
-                      handleFilterChange({ searchQuery: e.target.value })
-                    }
-                    autoComplete="off"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  className="doctors-toolbar__filter-btn"
-                  aria-expanded={mobileFiltersOpen}
-                  aria-controls="doctors-mobile-filters"
-                  onClick={() => setMobileFiltersOpen(true)}
+            <div className="doctors-page">
+              {loading && (
+                <div
+                  className="doctors-grid"
+                  aria-busy="true"
+                  aria-label="Loading doctors"
                 >
-                  Filter Doctors
-                  {filtersActive ? (
-                    <span className="doctors-toolbar__filter-count">
-                      ({countActiveDoctorFilters(filters)})
-                    </span>
-                  ) : null}
-                </button>
-              </div>
-
-              <p className="doctors-results-label" role="status" aria-live="polite">
-                {resultsLabel}
-              </p>
-
-              {filteredDoctors.length === 0 ? (
-                <PageState
-                  variant="empty"
-                  icon="search"
-                  title="No doctors found"
-                  message="Try changing your specialization or medical center filter."
-                  onRetry={handleClearFilters}
-                  retryLabel="Clear All Filters"
-                />
-              ) : (
-                <div className="doctors-grid">
-                  {filteredDoctors.map((doctor) => (
-                    <DoctorProfileCard key={doctor.doctorId} doctor={doctor} />
+                  {Array.from({ length: 6 }, (_, i) => (
+                    <DoctorCardSkeleton key={i} />
                   ))}
                 </div>
               )}
-            </div>
 
-            {mobileFiltersOpen ? (
-              <div className="doctors-filters-drawer" role="presentation">
-                <button
-                  type="button"
-                  className="doctors-filters-drawer__backdrop"
-                  aria-label="Close filters"
-                  onClick={() => setMobileFiltersOpen(false)}
+              {!loading && error && (
+                <PageState
+                  variant="error"
+                  icon="network"
+                  title="Unable to load doctors"
+                  message={USER_MESSAGES.loadFailed}
+                  onRetry={reload}
+                  retryLabel="Try Again"
                 />
-                <div
-                  id="doctors-mobile-filters"
-                  className="doctors-filters-drawer__panel"
-                  role="dialog"
-                  aria-modal="true"
-                  aria-label="Filter doctors"
-                >
-                  <div className="doctors-filters-drawer__header">
-                    <h2 className="doctors-filters-drawer__title">Filter Doctors</h2>
-                    <button
-                      type="button"
-                      className="doctors-filters-drawer__close"
-                      aria-label="Close filters"
-                      onClick={() => setMobileFiltersOpen(false)}
-                    >
-                      ×
-                    </button>
-                  </div>
+              )}
+
+              {!loading && !error && doctors.length === 0 && (
+                <PageState
+                  variant="empty"
+                  icon="doctors"
+                  title="No doctors found"
+                  message="There are no doctors listed right now. Try again later or book through channeling."
+                  onRetry={reload}
+                  retryLabel="Refresh"
+                  action={{ label: "Book Appointment", href: "/channeling" }}
+                />
+              )}
+
+              {!loading && !error && doctors.length > 0 && (
+                <div className="doctors-layout">
                   <DoctorFiltersPanel
                     filters={filters}
                     options={filterOptions}
                     onChange={handleFilterChange}
-                    onClearAll={() => {
-                      handleClearFilters();
-                      setMobileFiltersOpen(false);
-                    }}
-                    className="doctors-filters--drawer"
+                    onClearAll={handleClearFilters}
+                    className="doctors-filters--desktop"
                   />
-                  <div className="doctors-filters-drawer__footer">
-                    <button
-                      type="button"
-                      className="doctors-filters-drawer__apply"
-                      onClick={() => setMobileFiltersOpen(false)}
+
+                  <div className="doctors-main">
+                    <div className="doctors-toolbar">
+                      <div className="doctors-toolbar__search-wrap">
+                        <label htmlFor="doctor-search" className="sr-only">
+                          Search doctors
+                        </label>
+                        <input
+                          id="doctor-search"
+                          type="search"
+                          className="doctors-toolbar__search"
+                          placeholder="Search by name, qualification, or specialization…"
+                          value={filters.searchQuery}
+                          onChange={(e) =>
+                            handleFilterChange({ searchQuery: e.target.value })
+                          }
+                          autoComplete="off"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        className="doctors-toolbar__filter-btn"
+                        aria-expanded={mobileFiltersOpen}
+                        aria-controls="doctors-mobile-filters"
+                        onClick={() => setMobileFiltersOpen(true)}
+                      >
+                        Filter Doctors
+                        {filtersActive ? (
+                          <span className="doctors-toolbar__filter-count">
+                            ({countActiveDoctorFilters(filters)})
+                          </span>
+                        ) : null}
+                      </button>
+                    </div>
+
+                    <p
+                      className="doctors-results-label"
+                      role="status"
+                      aria-live="polite"
                     >
-                      Show {filteredDoctors.length} Doctor
-                      {filteredDoctors.length === 1 ? "" : "s"}
-                    </button>
+                      {resultsLabel}
+                    </p>
+
+                    {filteredDoctors.length === 0 ? (
+                      <PageState
+                        variant="empty"
+                        icon="search"
+                        title="No doctors found"
+                        message="Try changing your specialization or medical center filter."
+                        onRetry={handleClearFilters}
+                        retryLabel="Clear All Filters"
+                      />
+                    ) : (
+                      <div className="doctors-grid">
+                        {filteredDoctors.map((doctor, index) => (
+                          <ScrollReveal
+                            key={doctor.doctorId}
+                            delay={index * 40}
+                            className="h-full"
+                          >
+                            <DoctorProfileCard
+                              doctor={doctor}
+                              cardIndex={index}
+                            />
+                          </ScrollReveal>
+                        ))}
+                      </div>
+                    )}
                   </div>
+
+                  {mobileFiltersOpen ? (
+                    <div className="doctors-filters-drawer" role="presentation">
+                      <button
+                        type="button"
+                        className="doctors-filters-drawer__backdrop"
+                        aria-label="Close filters"
+                        onClick={() => setMobileFiltersOpen(false)}
+                      />
+                      <div
+                        id="doctors-mobile-filters"
+                        className="doctors-filters-drawer__panel"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Filter doctors"
+                      >
+                        <div className="doctors-filters-drawer__header">
+                          <h2 className="doctors-filters-drawer__title">
+                            Filter Doctors
+                          </h2>
+                          <button
+                            type="button"
+                            className="doctors-filters-drawer__close"
+                            aria-label="Close filters"
+                            onClick={() => setMobileFiltersOpen(false)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <DoctorFiltersPanel
+                          filters={filters}
+                          options={filterOptions}
+                          onChange={handleFilterChange}
+                          onClearAll={() => {
+                            handleClearFilters();
+                            setMobileFiltersOpen(false);
+                          }}
+                          className="doctors-filters--drawer"
+                        />
+                        <div className="doctors-filters-drawer__footer">
+                          <button
+                            type="button"
+                            className="doctors-filters-drawer__apply"
+                            onClick={() => setMobileFiltersOpen(false)}
+                          >
+                            Show {filteredDoctors.length} Doctor
+                            {filteredDoctors.length === 1 ? "" : "s"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              </div>
-            ) : null}
+              )}
+            </div>
           </div>
-        )}
-      </div>
-    </PortalShell>
+        </section>
+
+        <ServicesCtaSection
+          headingId="doctors-cta-heading"
+          eyebrow={doctorsCta.eyebrow}
+          titleLead={doctorsCta.titleLead}
+          titleAccent={doctorsCta.titleAccent}
+          description={doctorsCta.description}
+          watermark={doctorsCta.watermark}
+          primaryLabel={doctorsCta.primaryLabel}
+          secondaryLabel={doctorsCta.secondaryLabel}
+          secondaryHref={doctorsCta.secondaryHref}
+        />
+      </main>
+      <SiteFooter />
+    </div>
   );
 }
 

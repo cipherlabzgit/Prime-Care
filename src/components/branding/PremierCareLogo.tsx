@@ -21,10 +21,10 @@ function LogoFullImage({ context }: { context: LogoContext }) {
   return (
     <img
       className={`premiercare-logo__full premiercare-logo__full--${context}`}
-      src="/images/premiercare-logo-full.png"
+      src={context === "header" ? "/logonew.png" : "/images/premiercare-logo-full.png"}
       alt="Premier Care Integrative Clinic"
-      width={280}
-      height={72}
+      width={context === "header" ? 941 : 280}
+      height={context === "header" ? 371 : 72}
       decoding="async"
     />
   );
@@ -47,6 +47,7 @@ function PremierCareLogo({
   variant = "horizontal",
   context = "header",
   className = "",
+  showTagline = false,
   ...rest
 }: PremierCareLogoProps) {
   if (variant === "mark") {
@@ -66,6 +67,9 @@ function PremierCareLogo({
       {...rest}
     >
       <LogoFullImage context={context} />
+      {showTagline ? (
+        <p className="premiercare-logo__tagline">Integrative healthcare for the whole you</p>
+      ) : null}
     </div>
   );
 }

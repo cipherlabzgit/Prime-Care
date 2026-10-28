@@ -27,7 +27,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="channeling-review-details__row">
       <dt>{label}</dt>
-      <dd>{value || "—"}</dd>
+      <dd>{value || "-"}</dd>
     </div>
   );
 }
@@ -76,10 +76,10 @@ function ChannelingReviewView({
           <DetailRow label="Patient's Name" value={getPatientFullName(patient)} />
           <DetailRow label="Phone" value={patient.phone} />
           <DetailRow label="NIC" value={patient.nic} />
-          <DetailRow label="Email" value={patient.email || "—"} />
-          <DetailRow label="Note / Address" value={patient.notes || "—"} />
+          <DetailRow label="Email" value={patient.email || "-"} />
+          <DetailRow label="Note / Address" value={patient.notes || "-"} />
           <DetailRow label="Hospital" value={session.centerName} />
-          <DetailRow label="Room No" value={session.roomCode || "—"} />
+          <DetailRow label="Room No" value={session.roomCode || "-"} />
           <DetailRow
             label="Appointment Time"
             value={`${formatTime(selectedSlot.time || session.startTime)} (Doctor may arrive later)`}

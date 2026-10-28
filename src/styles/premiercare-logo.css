@@ -14,14 +14,37 @@
   object-position: left center;
 }
 
+.premiercare-logo--header {
+  align-items: flex-start;
+  justify-content: flex-start;
+  height: 1.55rem;
+  width: calc(1.55rem * 705 / 111);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
 .premiercare-logo__full--header {
-  height: clamp(3.75rem, 9.5vw, 6rem);
-  max-width: min(100%, 26rem);
+  height: calc(1.55rem * 371 / 111);
+  width: calc(1.55rem * 941 / 111);
+  max-width: none;
+  margin-top: calc(-1.55rem * 81 / 111);
+  margin-left: calc(-1.55rem * 128 / 111);
+  object-fit: fill;
+}
+
+.premiercare-logo__tagline {
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.75);
+  max-width: 16rem;
 }
 
 .premiercare-logo--footer {
   display: inline-flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
   width: fit-content;
   max-width: 100%;
@@ -40,17 +63,17 @@
   object-position: center;
 }
 
-@media (min-width: 901px) {
-  .premiercare-logo__full--header {
-    height: 6rem;
-    max-width: 26rem;
-  }
-}
-
 @media (max-width: 480px) {
+  .premiercare-logo--header {
+    height: 1.35rem;
+    width: calc(1.35rem * 705 / 111);
+  }
+
   .premiercare-logo__full--header {
-    height: clamp(3.25rem, 14vw, 4.25rem);
-    max-width: min(100%, 18rem);
+    height: calc(1.35rem * 371 / 111);
+    width: calc(1.35rem * 941 / 111);
+    margin-top: calc(-1.35rem * 81 / 111);
+    margin-left: calc(-1.35rem * 128 / 111);
   }
 }
 

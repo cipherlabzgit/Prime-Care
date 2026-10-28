@@ -15,7 +15,7 @@ function AboutPreview() {
           <p className="about-preview__text">
             Whether you need a routine consultation or specialized treatment, our
             network of medical centers and verified physicians ensures you receive
-            timely, quality care—backed by transparent booking and dedicated support.
+            timely, quality care, backed by transparent booking and dedicated support.
           </p>
           <Link to="/channeling" className="home-btn home-btn--primary" id="learn-more">
             Book Your Visit

@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { listHolds, releaseHold, reserveHold } from "./slotHoldsStore.js";
+import { handleLandingEnquiry, validateLandingEnquiryBody } from "./landingEnquiry.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, "data");
@@ -12,6 +13,7 @@ const SEED_FILE = path.join(DATA_DIR, "reviews.seed.json");
 const BOOKINGS_FILE = path.join(DATA_DIR, "bookings.seed.json");
 const RMO_BOOKINGS_FILE = path.join(DATA_DIR, "rmo-bookings.json");
 const RMO_BOOKINGS_SEED = path.join(DATA_DIR, "rmo-bookings.seed.json");
+const DISCOVER_SEED_FILE = path.join(DATA_DIR, "channeling-discover.seed.json");
 const PORT = Number(process.env.REVIEWS_API_PORT || 7001);
 const PATIENTS_SERVED = Number(process.env.PATIENTS_SERVED || 5000);
 
@@ -75,6 +77,44 @@ function writeRmoBookings(bookings) {
 
 function todayDateKey() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function addDaysToDateKey(dateKey, days) {
+  const base = new Date(`${dateKey}T12:00:00.000Z`);
+  base.setUTCDate(base.getUTCDate() + days);
+  return base.toISOString().slice(0, 10);
+}
+
+function readDiscoverSessions() {
+  const raw = fs.readFileSync(DISCOVER_SEED_FILE, "utf8");
+  const template = JSON.parse(raw);
+  const today = todayDateKey();
+  return template.map((session, index) => ({
+    ...session,
+    sessionDate: addDaysToDateKey(today, (index % 5) + 1),
+  }));
+}
+
+function buildPublicDoctorsFromSessions(sessions) {
+  const byDoctor = new Map();
+  for (const session of sessions) {
+    if (byDoctor.has(session.doctorId)) continue;
+    byDoctor.set(session.doctorId, {
+      doctorId: session.doctorId,
+      doctorName: session.doctorName,
+      fullName: session.doctorName,
+      designation: session.designation,
+      specialization: session.specialization,
+      qualification: session.qualification,
+      experienceYears: session.experienceYears,
+      profileSummary: session.profileSummary,
+      slmcNumber: session.slmcNumber,
+      profileImage: session.profileImage,
+      isActive: session.isActive ?? true,
+      status: session.status ?? "Active",
+    });
+  }
+  return [...byDoctor.values()];
 }
 
 function matchesRmoLookup(booking, query) {
@@ -987,6 +1027,64 @@ app.post("/api/channeling/holds/reserve", (req, res) => {
   }
 });
 
+app.get("/api/channeling/public/discover", (_req, res) => {
+  try {
+    return res.json(readDiscoverSessions());
+  } catch (err) {
+    return res.status(500).json({
+      message: err.message || "Unable to load discover sessions.",
+    });
+  }
+});
+
+app.get("/api/channeling/public/doctors", (_req, res) => {
+  try {
+    return res.json(buildPublicDoctorsFromSessions(readDiscoverSessions()));
+  } catch (err) {
+    return res.status(500).json({
+      message: err.message || "Unable to load doctors.",
+    });
+  }
+});
+
+app.get("/api/channeling/public/specializations", (_req, res) => {
+  try {
+    const sessions = readDiscoverSessions();
+    const names = [
+      ...new Set(
+        sessions
+          .map((session) => session.specialization)
+          .filter((value) => typeof value === "string" && value.trim()),
+      ),
+    ];
+    return res.json(
+      names.map((name, index) => ({
+        id: index + 1,
+        name,
+        specialization: name,
+      })),
+    );
+  } catch (err) {
+    return res.status(500).json({
+      message: err.message || "Unable to load specializations.",
+    });
+  }
+});
+
+app.get("/api/channeling/public/sessions/:sessionId/slots", (req, res) => {
+  const sessionId = Number(req.params.sessionId);
+  if (!Number.isFinite(sessionId) || sessionId <= 0) {
+    return res.status(400).json({ message: "Invalid session id." });
+  }
+  const slots = [
+    { slotId: sessionId * 10 + 1, startTime: "09:00", endTime: "09:15", isAvailable: true },
+    { slotId: sessionId * 10 + 2, startTime: "09:20", endTime: "09:35", isAvailable: true },
+    { slotId: sessionId * 10 + 3, startTime: "09:40", endTime: "09:55", isAvailable: false },
+    { slotId: sessionId * 10 + 4, startTime: "10:00", endTime: "10:15", isAvailable: true },
+  ];
+  return res.json(slots);
+});
+
 app.post("/api/channeling/holds/release", (req, res) => {
   try {
     const channelSlotId = Number(req.body?.channelSlotId);
@@ -1009,6 +1107,29 @@ app.post("/api/channeling/holds/release", (req, res) => {
   } catch (err) {
     return res.status(Number(err.status) || 500).json({
       message: err.message || "Hold release failed.",
+    });
+  }
+});
+
+app.post("/api/public/landing-enquiry", async (req, res) => {
+  const validation = validateLandingEnquiryBody(req.body);
+  if (!validation.ok) {
+    return res.status(400).json({ message: validation.message });
+  }
+  try {
+    const result = await handleLandingEnquiry({
+      dataDir: DATA_DIR,
+      landingId: validation.landingId,
+      fields: validation.fields,
+    });
+    return res.json({
+      message: "Enquiry received.",
+      emailed: result.emailed,
+    });
+  } catch (err) {
+    console.error("[landing-enquiry]", err);
+    return res.status(500).json({
+      message: "We could not send your enquiry right now. Please try again.",
     });
   }
 });

@@ -27,7 +27,7 @@ export const aboutPresentationSlides: AboutPresentationSlide[] = [
     label: "Our Vision",
     headline: ["Live Better.", "Live Longer.", "Live Fully."],
     description:
-      "Healthcare that goes beyond treating illness — helping people understand their health and build a healthier future.",
+      "Healthcare that goes beyond treating illness, helping people understand their health and build a healthier future.",
     keywords: ["Whole-Person Care", "Prevention", "Better Living"],
     image: "/images/about/vision.png",
     imageAlt: "Vision of healthier living and lasting wellbeing",
@@ -72,29 +72,48 @@ export const aboutJourney = [
   },
 ] as const;
 
-export const leadershipTeam = [
+export interface LeadershipMember {
+  id: string;
+  doctorId: number;
+  name: string;
+  yearsExperience: number;
+  specialization: string;
+  specialties: string;
+  qualifications: string;
+  image: string;
+  imageAlt: string;
+}
+
+export const leadershipTeam: LeadershipMember[] = [
   {
-    id: "homeopathy",
-    name: "Homeopathy Practitioners",
-    role: "Core Healthcare Practice",
-    bio: "Qualified Homeopathic practitioners providing holistic, individualized consultations as part of our integrative care model.",
-    initials: "HP",
+    id: "hafeeza-begum",
+    doctorId: 1,
+    name: "Dr. Hafeeza Begum",
+    yearsExperience: 16,
+    specialization: "Homeopathy",
+    specialties:
+      "Founder/CEO",
+    qualifications:
+      "DHMS, PG Dip. In Healthcare Development, MBA in Health Administration",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto,c_limit,w_900/v1791279599/WhatsApp_Image_2026-10-06_at_10.37.05_k8v0sz.jpg",
+    imageAlt: "Dr. Hafeeza Begum, Founder and CEO at Premier Care",
   },
   {
-    id: "therapy",
-    name: "Therapeutic Team",
-    role: "Speech · Physio · OT · Psychology",
-    bio: "Multidisciplinary therapists supporting communication, movement, daily function, and emotional wellbeing across all stages of life.",
-    initials: "TT",
+    id: "nimeera-weerarathne",
+    doctorId: 2,
+    name: "Dr. Nimeera Chathuranga Weerarathne",
+    yearsExperience: 19,
+    specialization: "Speech Therapy",
+    specialties: "Head of Mental Health & Wellbeing Unit",
+    qualifications:
+      "PhD SLP, Cert ABT, Cert CBT, Cert Sex therapy, ABNLP, Dip Psy counseling",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto,c_limit,w_900/v1791279599/WhatsApp_Image_2026-10-06_at_10.37.07_ley3zj.jpg",
+    imageAlt:
+      "Dr. Nimeera Chathuranga Weerarathne, Head of Mental Health & Wellbeing Unit at Premier Care",
   },
-  {
-    id: "wellness",
-    name: "Wellness & Clinical Team",
-    role: "Diagnostics · Wellness · Preventive Care",
-    bio: "Healthcare professionals supporting laboratory services, wellness programs, preventive care, and personalized health improvement pathways.",
-    initials: "WC",
-  },
-] as const;
+];
 
 export const coreValues = [
   {
@@ -211,3 +230,15 @@ export const aboutWhyChoose = [
     description: "We treat every patient with dignity, empathy, respect, and genuine care.",
   },
 ] as const;
+
+export const aboutCta = {
+  eyebrow: "Get started",
+  titleLead: "Ready to begin your",
+  titleAccent: "healthcare journey?",
+  description:
+    "Book an appointment online or contact our team for guidance on the right service for you.",
+  watermark: "Care",
+  primaryLabel: "Book Appointment",
+  secondaryLabel: "Find a Doctor",
+  secondaryHref: "/doctors",
+} as const;

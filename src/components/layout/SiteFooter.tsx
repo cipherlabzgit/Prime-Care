@@ -7,7 +7,6 @@ import {
   footerServiceLinks,
   footerSocialLinks,
   footerTrustItems,
-  footerTrustStats,
 } from "../../data/footerData";
 import "../../styles/footer.css";
 
@@ -30,18 +29,9 @@ function FooterLinkItem({ href, label }: { href: string; label: string }) {
 function SiteFooter() {
   return (
     <footer className="site-footer" id="site-footer">
-      <div className="site-footer__stats" aria-label="PremierCare trust statistics">
-        {footerTrustStats.map((stat) => (
-          <div key={stat.label} className="site-footer__stat">
-            <strong>{stat.value}</strong>
-            <span>{stat.label}</span>
-          </div>
-        ))}
-      </div>
-
       <div className="site-footer__inner">
         <div className="site-footer__brand">
-          <Link to="/" className="site-footer__logo" aria-label="PremierCare — Home">
+          <Link to="/" className="site-footer__logo" aria-label="PremierCare Home">
             <PremierCareLogo context="footer" showTagline />
           </Link>
           <p className="site-footer__tagline">{footerBranding.tagline}</p>
@@ -113,6 +103,16 @@ function SiteFooter() {
 
       <div className="site-footer__bottom">
         <p>{footerBranding.copyright}</p>
+        <p className="site-footer__credit">
+          Design by{" "}
+          <a
+            href="https://clovesis.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Clovesis
+          </a>
+        </p>
       </div>
     </footer>
   );

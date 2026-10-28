@@ -22,7 +22,7 @@ function SignedInPatientCard({ profile, onSignOut }: SignedInPatientCardProps) {
         </Button>
       </div>
       <p className="signed-in-patient-card__hint">
-        Your details are ready. Choose a time slot and continue — no need to
+        Your details are ready. Choose a time slot and continue. No need to
         refill the form.
       </p>
     </div>

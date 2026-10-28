@@ -74,12 +74,12 @@ function Detail({ label, value }: { label: string; value: string }) {
 }
 
 function formatFee(amount: number): string {
-  if (!Number.isFinite(amount) || amount <= 0) return "—";
+  if (!Number.isFinite(amount) || amount <= 0) return "-";
   return `${amount.toLocaleString("en-LK")} LKR`;
 }
 
 function formatDate(value: string): string {
-  if (!value) return "—";
+  if (!value) return "-";
   const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString("en-LK", {
@@ -246,7 +246,7 @@ function MyBookingsPage() {
 
             <form className="my-bookings__form" onSubmit={handleSubmit}>
               <div className="my-bookings__field">
-                <label htmlFor="my-booking-reference">Reference Number — Required</label>
+                <label htmlFor="my-booking-reference">Reference Number (required)</label>
                 <div className="my-bookings__input-wrap">
                   <PersonIcon />
                   <input
@@ -261,7 +261,7 @@ function MyBookingsPage() {
               </div>
 
               <div className="my-bookings__field">
-                <label htmlFor="my-booking-phone">Phone — Required</label>
+                <label htmlFor="my-booking-phone">Phone (required)</label>
                 <div className="my-bookings__input-wrap">
                   <PhoneIcon />
                   <input
@@ -367,7 +367,7 @@ function MyBookingsPage() {
                     <dd>
                       {booking.currentServingNumber != null
                         ? booking.currentServingNumber
-                        : "—"}
+                        : "-"}
                     </dd>
                   </div>
                 </dl>
@@ -384,10 +384,10 @@ function MyBookingsPage() {
               <Detail label="Appointment time" value={booking.doctorAppointmentTime} />
               <Detail
                 label="Arrive by"
-                value={booking.recommendedArrivalTime || "—"}
+                value={booking.recommendedArrivalTime || "-"}
               />
               <Detail label="Center" value={booking.centerName} />
-              <Detail label="Room" value={booking.roomCode || "—"} />
+              <Detail label="Room" value={booking.roomCode || "-"} />
               <Detail label="Consultation fee" value={formatFee(booking.consultationFee)} />
               <Detail
                 label="Patient type"

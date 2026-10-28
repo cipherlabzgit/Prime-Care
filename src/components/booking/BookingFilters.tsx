@@ -43,7 +43,7 @@ function BookingFilters({
             <option value="">All centers</option>
             {centers.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name} — {c.city}
+                {c.name}, {c.city}
               </option>
             ))}
           </select>

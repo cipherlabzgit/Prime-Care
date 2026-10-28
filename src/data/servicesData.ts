@@ -1,18 +1,24 @@
 import type { ClinicalService, ServiceStatistic } from "../types/service";
 
 const serviceImages = {
-  homeopathy: "/images/services/general-medicine.jpg",
-  speechLanguage: "/images/services/speech-language-therapy.png",
-  therapeutic: "/images/services/pediatrics.jpg",
-  wellness: "/images/hero-consultation.png",
+  homeopathy:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790927633/homeo_dlfjw1.png",
+  speechLanguage:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790927631/speech_w7qx1y.jpg",
+  therapeutic:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790927631/other_subzlc.jpg",
+  wellness:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790927632/wellness_r6bjrw.jpg",
   laboratory: "/images/services/laboratory.png",
-  pharmacy: "/images/services/pharmacy-nutraceuticals.png",
-  corporate: "/images/services/cardiology.jpg",
+  pharmacy:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790928012/Gemini_Generated_Image_jmr4mhjmr4mhjmr4_b7dvwa.jpg",
+  corporate:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790928231/Gemini_Generated_Image_6pxj6y6pxj6y6pxj_lllpwc.jpg",
 } as const;
 
 export const servicesHero = {
   eyebrow: "Our Services",
-  title: "Comprehensive Care. One Connected Healthcare Experience.",
+  title: "Integrative Care",
   description:
     "At Premier Care Integrative Clinic, we bring together a range of healthcare and therapeutic services to support individuals at different stages of their health journey.",
   image: "/images/hero-consultation.png",
@@ -44,11 +50,11 @@ export const clinicalServices: ClinicalService[] = [
       "General wellness and preventive care",
     ],
     treatments: [
-      "Listen — understand your concerns and experiences",
-      "Explore — consider health history and influencing factors",
-      "Individualize — personalized approaches for each person",
-      "Prescribe — provide the right homeopathic medicine for you",
-      "Support — journey toward improved health and wellbeing",
+      "Listen: understand your concerns and experiences",
+      "Explore: consider health history and influencing factors",
+      "Individualize: personalized approaches for each person",
+      "Prescribe: provide the right homeopathic medicine for you",
+      "Support: journey toward improved health and wellbeing",
     ],
   },
   {
@@ -152,7 +158,7 @@ export const clinicalServices: ClinicalService[] = [
     name: "Pharmacy, Nutraceuticals & Wellness Solutions",
     slug: "pharmacy-wellness",
     description:
-      "Our pharmacy and wellness services provide access to carefully selected healthcare products that may complement an individual's personalized care plan. Products and supplements should form part of a thoughtful healthcare plan—not replace professional assessment and care.",
+      "Our pharmacy and wellness services provide access to carefully selected healthcare products that may complement an individual's personalized care plan. Products and supplements should form part of a thoughtful healthcare plan, not replace professional assessment and care.",
     icon: "💊",
     image: serviceImages.pharmacy,
     services: [
