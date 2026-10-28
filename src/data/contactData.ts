@@ -1,11 +1,46 @@
 import { clinicInfo } from "./siteContent";
+import { MY_BOOKINGS_URL } from "../utils/bookingNavigation";
 
 export const contactHero = {
   eyebrow: "Contact Us",
-  title: "We Are Here to Help",
+  titleLead: "We Are",
+  titleAccent: "Here to Help",
   description:
     "Whether you are ready to book an appointment, looking for the right healthcare service, interested in corporate healthcare solutions, or simply want to learn more about Premier Care, our team is here to help.",
 };
+
+export const contactQuickLinks = [
+  {
+    label: "Book appointment",
+    description: "Search live clinic sessions",
+    href: "/channeling",
+    icon: "📅",
+  },
+  {
+    label: "Our doctors",
+    description: "Browse practitioners",
+    href: "/doctors",
+    icon: "🩺",
+  },
+  {
+    label: "My bookings",
+    description: "View or manage visits",
+    href: MY_BOOKINGS_URL,
+    icon: "📋",
+  },
+] as const;
+
+export const contactCta = {
+  eyebrow: "Book with us",
+  titleLead: "Prefer to book",
+  titleAccent: "online?",
+  description:
+    "Use channeling to see live sessions and reserve your appointment in a few steps.",
+  watermark: "Care",
+  primaryLabel: "Book Appointment",
+  secondaryLabel: "Our Doctors",
+  secondaryHref: "/doctors",
+} as const;
 
 export const contactInfo = {
   address: {

@@ -25,9 +25,9 @@
   box-sizing: border-box;
 }
 
-.booking-page .navbar {
+.booking-page .navbar__bar {
   background: var(--surface);
-  border-bottom-color: var(--border);
+  border-color: var(--border);
 }
 
 .booking-page .navbar__logo,

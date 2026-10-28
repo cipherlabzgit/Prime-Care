@@ -20,7 +20,7 @@ export const features: FeatureItem[] = [
     id: "integrative",
     title: "Integrative Care",
     description:
-      "Homeopathy, therapeutic services, psychological care, diagnostics, wellness, and preventive healthcare—connected in one clinic.",
+      "Homeopathy, therapeutic services, psychological care, diagnostics, wellness, and preventive healthcare, connected in one clinic.",
     icon: "centers",
   },
   {
@@ -34,19 +34,31 @@ export const features: FeatureItem[] = [
     id: "prevention",
     title: "Prevention-Focused",
     description:
-      "We encourage proactive steps toward maintaining and improving long-term wellbeing—not only treating today's concerns.",
+      "We encourage proactive steps toward maintaining and improving long-term wellbeing, not only treating today's concerns.",
     icon: "booking",
   },
 ];
 
 export const services: ServiceItem[] = getHomeServiceCards();
 
+/** Practical clinic facts — used in home stats strip (footer keeps its own copy). */
 export const statistics: StatisticItem[] = [
-  { id: "disciplines", value: "6+", label: "Healthcare Disciplines" },
-  { id: "hours", value: "9–9", label: "Daily Clinic Hours" },
+  { id: "disciplines", value: "7+", label: "Healthcare Disciplines" },
+  { id: "hours", value: "9am–9pm", label: "Daily Clinic Hours" },
   { id: "languages", value: "3", label: "Languages Supported" },
-  { id: "parking", value: "✓", label: "Parking Available" },
+  { id: "parking", value: "Yes", label: "Parking Available" },
 ];
+
+/** Hero highlights — distinct from footer/hours cards so the first screen is not duplicated. */
+export const heroHighlights: StatisticItem[] = [
+  { id: "integrative", value: "Whole-Person", label: "Integrative Care Model" },
+  { id: "therapies", value: "Therapies+", label: "Speech, Physio, OT & Psychology" },
+  { id: "nutrition", value: "Nutrition", label: "Diet & Nutrition Support" },
+  { id: "connected", value: "One Clinic", label: "All Services Under One Roof" },
+];
+
+/** Homepage “Our Doctors” row — doctorId from discover seed (excludes Deemanthe). */
+export const featuredDoctorIds = [1, 2, 4] as const;
 
 export const featuredDoctors: FeaturedDoctor[] = [
   {
@@ -58,7 +70,7 @@ export const featuredDoctors: FeaturedDoctor[] = [
   },
   {
     id: "therapy",
-    name: "Therapeutic Services Team",
+    name: "Other Therapeutic Services Team",
     specialization: "Speech · Physio · OT · Psychology",
     qualifications: "Multidisciplinary therapeutic care",
     initials: "TS",
@@ -106,7 +118,7 @@ export const testimonials: Testimonial[] = [
     name: "Verified Patient",
     role: "Patient · Colombo",
     quote:
-      "From consultation to follow-up, the team treated me with dignity and respect. I felt heard—not just another appointment.",
+      "From consultation to follow-up, the team treated me with dignity and respect. I felt heard, not just another appointment.",
     rating: 5,
     initials: "VP",
   },
@@ -115,15 +127,13 @@ export const testimonials: Testimonial[] = [
 export const whyChooseSection = {
   eyebrow: "Why Premier Care?",
   title: "Healthcare Designed Around the Whole You",
-  description:
-    "We bring together multiple healthcare disciplines to create a more complete, compassionate, and personalized care experience.",
 } as const;
 
 export const specialtiesSection = {
   eyebrow: "Our Services",
   title: "Comprehensive Care. One Connected Experience.",
   description:
-    "From Homeopathy and therapeutic services to wellness, laboratory support, and corporate healthcare—we support you at every stage of your health journey.",
+    "From Homeopathy and therapeutic services to wellness, laboratory support, and corporate healthcare, we support you at every stage of your health journey.",
   cta: "Explore All Services",
 } as const;
 
@@ -131,7 +141,7 @@ export const ctaSection = {
   eyebrow: "Appointments",
   title: "Your Healthcare Journey Starts With One Step",
   description:
-    "Book your preferred service, practitioner, date, and time through our online appointment system—or contact our team for assistance.",
+    "Book your preferred service, practitioner, date, and time through our online appointment system, or contact our team for assistance.",
   primaryCta: "Book an Appointment",
   secondaryCta: "Contact Our Team",
 } as const;

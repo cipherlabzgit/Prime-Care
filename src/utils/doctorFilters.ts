@@ -19,9 +19,14 @@ export interface DoctorFilterOptions {
   specializations: string[];
 }
 
+function isUsableFilterLabel(value: string | undefined): value is string {
+  return Boolean(value) && value !== "-";
+}
+
 export function deriveDoctorFilterOptions(
   doctors: DoctorProfile[],
   sessions: ChannelingSession[],
+  catalog: string[] = [],
 ): DoctorFilterOptions {
   const centersFromSessions = uniqueCenters(sessions);
   const centersFromDoctors = [
@@ -33,11 +38,14 @@ export function deriveDoctorFilterOptions(
       : centersFromDoctors;
 
   const specsFromSessions = uniqueSpecializations(sessions);
-  const specsFromDoctors = [
-    ...new Set(doctors.map((doctor) => doctor.specialization).filter(Boolean)),
-  ].sort();
-  const specializations =
-    specsFromDoctors.length > 0 ? specsFromDoctors : specsFromSessions;
+  const specsFromDoctors = doctors.map((doctor) => doctor.specialization);
+  const specializations = [
+    ...new Set(
+      [...catalog, ...specsFromDoctors, ...specsFromSessions].filter(
+        isUsableFilterLabel,
+      ),
+    ),
+  ].sort((a, b) => a.localeCompare(b));
 
   return { centers, specializations };
 }

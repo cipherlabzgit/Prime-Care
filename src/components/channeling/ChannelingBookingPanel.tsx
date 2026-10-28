@@ -44,6 +44,8 @@ interface ChannelingBookingPanelProps {
   onDetectedPatientChange: (patient: ExistingPatientProfile | null) => void;
   onPatientLookupSettledChange?: (settled: boolean) => void;
   onUseExistingProfile: () => void;
+  onSignedInProfile: (profile: ExistingPatientProfile) => void;
+  onClearSignedInProfile: () => void;
   onSubmit: () => void;
   onClose: () => void;
 }
@@ -198,6 +200,8 @@ function ChannelingBookingPanel({
   onDetectedPatientChange,
   onPatientLookupSettledChange,
   onUseExistingProfile,
+  onSignedInProfile,
+  onClearSignedInProfile,
   onSubmit,
   onClose,
 }: ChannelingBookingPanelProps) {
@@ -237,7 +241,7 @@ function ChannelingBookingPanel({
     <aside className="booking-panel channeling-glass channeling-sticky" aria-label="Booking panel">
       <header className="booking-panel__header">
         <div className="booking-panel__header-text">
-          <span className="booking-panel__eyebrow">Step 3</span>
+          <span className="booking-panel__eyebrow">Booking</span>
           <h2 className="booking-panel__title">
             {confirmed ? "Booking Confirmed" : "Complete Booking"}
           </h2>
@@ -357,6 +361,8 @@ function ChannelingBookingPanel({
                 onDetectedPatientChange={onDetectedPatientChange}
                 onPatientLookupSettledChange={onPatientLookupSettledChange}
                 onUseExistingProfile={onUseExistingProfile}
+                onSignedInProfile={onSignedInProfile}
+                onClearSignedInProfile={onClearSignedInProfile}
               />
             </section>
 

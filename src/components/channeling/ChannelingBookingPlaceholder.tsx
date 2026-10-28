@@ -10,7 +10,6 @@ function ChannelingBookingPlaceholder() {
     <aside className="booking-panel booking-panel--placeholder channeling-glass channeling-sticky hidden lg:flex" aria-label="Booking panel placeholder">
       <header className="booking-panel__header">
         <div className="booking-panel__header-text">
-          <span className="booking-panel__eyebrow">Step 3</span>
           <h2 className="booking-panel__title">Complete Booking</h2>
           <p className="booking-panel__subtitle">Select a session to begin</p>
         </div>

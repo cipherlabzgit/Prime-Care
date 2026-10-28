@@ -6,11 +6,12 @@ import Navbar from "../components/Navbar";
 import SiteFooter from "../components/layout/SiteFooter";
 import ServiceDetailSection from "../components/services/ServiceDetailSection";
 import ServicesCtaSection from "../components/services/ServicesCtaSection";
-import ServicesHero from "../components/services/ServicesHero";
 import ServicesStatsSection from "../components/services/ServicesStatsSection";
+import ServicesHero from "../components/services/ServicesHero";
 import PageState from "../components/ui/PageState";
 import { fetchClinicalServices } from "../services/clinicalServicesService";
 import type { ClinicalService } from "../types/service";
+import "../styles/about.css";
 import "../styles/home.css";
 import "../styles/services.css";
 
@@ -64,10 +65,10 @@ function ServicesPage() {
         <ServicesHero />
 
         {loading ? (
-          <section className="home-section services-loading" aria-label="Loading services">
+          <section className="services-loading" aria-label="Loading services">
             <div className="services-loading__grid">
               {Array.from({ length: 3 }, (_, i) => (
-                <div key={i} className="services-loading__card animate-pulse" />
+                <div key={i} className="services-loading__card" />
               ))}
             </div>
           </section>

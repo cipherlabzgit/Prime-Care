@@ -1,10 +1,12 @@
 import axios from "axios";
 
-const DEFAULT_CHANNELING_API_ORIGIN = "http://localhost:7000";
+/** Empty = same origin (Vite dev proxies to local reviews API on :7001). */
+const DEFAULT_CHANNELING_API_ORIGIN = "";
 
 function resolveApiOrigin(value: string | undefined, fallback: string): string {
   const trimmed = value?.trim();
-  return (trimmed && trimmed.length > 0 ? trimmed : fallback).replace(/\/+$/, "");
+  const origin = trimmed && trimmed.length > 0 ? trimmed : fallback;
+  return origin.replace(/\/+$/, "");
 }
 
 /** Gateway origin without trailing slash — paths include `/api/...`. */

@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="8" fill="#03989E"/>
-  <path fill="#fff" d="M15 8h2v7h7v2h-7v7h-2v-7H8v-2h7V8z"/>
-  <circle cx="24" cy="8" r="3" fill="#FFC85E"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Premier Care Integrative Clinic">
+  <rect width="64" height="64" rx="12" fill="#ffffff"/>
+  <g fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path stroke="#03989E" d="M32 26V18h-8a8 8 0 0 0-8 8v8h8"/>
+    <path stroke="#FFC85E" d="M38 32h8v8a8 8 0 0 1-8 8h-8v-8"/>
+  </g>
 </svg>

@@ -1,44 +1,64 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useDiscoverSessions } from "../../hooks/useDiscoverSessions";
+import { featuredDoctorIds } from "../../data/homeData";
 import { deriveDoctorsFromSessions } from "../../utils/channelingUtils";
-import { getInitials } from "../../utils/channelingUtils";
+import { getDoctorProfileImagePath } from "../../utils/doctorDisplayUtils";
 import PageState from "../ui/PageState";
 import { USER_MESSAGES } from "../../utils/userMessages";
 import DoctorCard from "./DoctorCard";
 import ScrollReveal from "./ScrollReveal";
-import SectionHeader from "./SectionHeader";
 
 function FeaturedDoctorSkeleton() {
   return (
-    <div
-      className="doctor-card doctor-card--premium animate-pulse"
-      aria-hidden="true"
-    >
-      <div className="mb-4 h-14 w-14 rounded-2xl bg-slate-200" />
-      <div className="mb-2 h-5 w-3/4 rounded-lg bg-slate-200" />
-      <div className="mb-2 h-4 w-1/2 rounded-lg bg-slate-200" />
-      <div className="mb-4 h-4 w-full rounded-lg bg-slate-200" />
-      <div className="h-10 rounded-full bg-slate-200" />
+    <div className="doctor-card doctor-card--modern animate-pulse" aria-hidden="true">
+      <div className="doctor-card__media doctor-card__media--skeleton" />
+      <div className="doctor-card__body">
+        <div className="mb-3 h-5 w-4/5 rounded-lg bg-slate-200" />
+        <div className="mb-2 h-4 w-1/2 rounded-full bg-slate-200" />
+        <div className="mb-4 h-4 w-full rounded-lg bg-slate-200" />
+        <div className="h-11 rounded-full bg-slate-200" />
+      </div>
     </div>
   );
 }
 
 function FeaturedDoctorsSection() {
   const { sessions, loading, error, reload } = useDiscoverSessions();
-  const featuredDoctors = useMemo(
-    () => deriveDoctorsFromSessions(sessions).slice(0, 3),
-    [sessions],
-  );
+  const featuredDoctors = useMemo(() => {
+    const directory = deriveDoctorsFromSessions(sessions);
+    const byId = new Map(directory.map((doctor) => [doctor.doctorId, doctor]));
+    const picked = featuredDoctorIds
+      .map((id) => byId.get(id))
+      .filter((doctor): doctor is NonNullable<typeof doctor> => Boolean(doctor));
+
+    if (picked.length > 0) {
+      return picked;
+    }
+
+    return directory
+      .filter((doctor) => doctor.doctorId !== 3)
+      .slice(0, 3);
+  }, [sessions]);
 
   return (
-    <section className="home-section" id="doctors" aria-labelledby="doctors-heading">
+    <section
+      className="home-section featured-doctors-section"
+      id="doctors"
+      aria-labelledby="doctors-heading"
+    >
       <ScrollReveal>
-        <SectionHeader
-          eyebrow="Meet Our Team"
-          title="Our Practitioners"
-          description="Experienced practitioners across Homeopathy, therapeutic services, psychology, and wellness—ready to support your care journey."
-        />
+        <header className="section-header section-header--center featured-doctors-section__header">
+          <span className="section-header__eyebrow">Meet Our Team</span>
+          <h2 id="doctors-heading" className="featured-doctors-section__title">
+            <span>Our</span>
+            <span className="featured-doctors-section__title-accent">Doctors</span>
+          </h2>
+          <p className="section-header__desc">
+            Experienced practitioners across Homeopathy, therapeutic services, psychology, and
+            wellness, ready to support your care journey.
+          </p>
+        </header>
       </ScrollReveal>
 
       <div className="home-grid home-grid--3 home-grid--doctors">
@@ -69,7 +89,9 @@ function FeaturedDoctorsSection() {
                 name={doctor.doctorName}
                 specialization={doctor.specialization}
                 qualifications={doctor.qualification}
-                initials={getInitials(doctor.doctorName)}
+                designation={doctor.designation}
+                experienceYears={doctor.experienceYears}
+                profileImage={getDoctorProfileImagePath(doctor)}
               />
             </ScrollReveal>
           ))}

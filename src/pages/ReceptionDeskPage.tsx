@@ -252,7 +252,7 @@ function ReceptionDeskPage() {
                   </div>
                   <div>
                     <dt>NIC / Passport</dt>
-                    <dd>{selectedBooking.nicOrPassport || "—"}</dd>
+                    <dd>{selectedBooking.nicOrPassport || "-"}</dd>
                   </div>
                   <div>
                     <dt>Date</dt>
@@ -284,7 +284,7 @@ function ReceptionDeskPage() {
 
                 {selectedBooking.requiresRmoCaseTaking ? (
                   <p className="rmo-panel__reception-note">
-                    New patient — assign to RMO after check-in for ~{" "}
+                    New patient: assign to RMO after check-in for ~{" "}
                     {selectedBooking.rmoCaseTakingMinutes} minutes of case taking.
                   </p>
                 ) : null}
@@ -316,7 +316,7 @@ function ReceptionDeskPage() {
                   ) : null}
                   {selectedBooking.rmoStatus === "ReadyForDoctor" ? (
                     <p className="rmo-panel__done-inline">
-                      Case taking complete — patient is ready for the doctor.
+                      Case taking complete. Patient is ready for the doctor.
                     </p>
                   ) : null}
                 </div>

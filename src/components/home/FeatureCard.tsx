@@ -2,6 +2,7 @@ import type { FeatureItem } from "../../types/home";
 
 interface FeatureCardProps {
   feature: FeatureItem;
+  index?: number;
 }
 
 function FeatureIcon({ type }: { type: FeatureItem["icon"] }) {
@@ -37,9 +38,9 @@ function FeatureIcon({ type }: { type: FeatureItem["icon"] }) {
   }
 }
 
-function FeatureCard({ feature }: FeatureCardProps) {
+function FeatureCard({ feature, index }: FeatureCardProps) {
   return (
-    <article className="feature-card">
+    <article className="feature-card" data-index={index === undefined ? undefined : `0${index + 1}`}>
       <div className="feature-card__icon">
         <FeatureIcon type={feature.icon} />
       </div>

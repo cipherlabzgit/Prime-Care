@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { usePatientAuth } from "../context/PatientAuthContext";
 import { useToast } from "../context/ToastContext";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { USER_MESSAGES } from "../utils/userMessages";
@@ -7,43 +8,55 @@ import {
   formatDoctorDisplayName,
   getSessionDoctorName,
 } from "../utils/doctorDisplayUtils";
+import { channelingLandingHint } from "../data/channelingData";
 import "../styles/about.css";
-import ChannelingBookingPanel from "../components/channeling/ChannelingBookingPanel";
-import ChannelingBookingPlaceholder from "../components/channeling/ChannelingBookingPlaceholder";
+import "../styles/home.css";
+import "../styles/channeling-site.css";
+import ChannelingBookingFormView from "../components/channeling/ChannelingBookingFormView";
+import ChannelingDoctorSessionsView from "../components/channeling/ChannelingDoctorSessionsView";
 import ChannelingFilters from "../components/channeling/ChannelingFilters";
 import ChannelingPageLayout from "../components/channeling/ChannelingPageLayout";
-import ChannelingSessionCard from "../components/channeling/ChannelingSessionCard";
-import ChannelingSectionHeader from "../components/channeling/ChannelingSectionHeader";
-import Button from "../components/ui/Button";
+import ChannelingPaymentView from "../components/channeling/ChannelingPaymentView";
+import ChannelingResultsList from "../components/channeling/ChannelingResultsList";
+import ChannelingReviewView from "../components/channeling/ChannelingReviewView";
 import PageState from "../components/ui/PageState";
-import {
-  FilterPanelSkeleton,
-  SessionCardSkeleton,
-} from "../components/ui/Skeleton";
+import { FilterPanelSkeleton } from "../components/ui/Skeleton";
+import { useBookingCountdown } from "../hooks/useBookingCountdown";
 import { useDiscoverSessions } from "../hooks/useDiscoverSessions";
-import { useIncrementalReveal } from "../hooks/useIncrementalReveal";
 import type { ChannelingPaymentMethod, SessionTimeSlot } from "../types/channeling";
 import { existingPatientToFormData } from "../services/patientService";
 import type {
   ExistingPatientProfile,
   PatientFormData,
 } from "../types/patient";
+import { getPatientFullName } from "../types/patient";
 import {
   checkoutChannelingBooking,
   fetchSessionSlots,
   getCheckoutErrorMessage,
   getPaymentRedirectUrl,
-  type ChannelingSessionSlot,
   type ChannelingSession,
 } from "../services/channelingService";
+import {
+  buildChannelingDoctorFilterOptions,
+  fetchPublicDoctors,
+} from "../services/doctorService";
+import {
+  fetchActiveHolds,
+  getHoldErrorMessage,
+  getSlotHoldFailureKind,
+  releaseSlotHold,
+  releaseSlotHoldBeacon,
+  reserveSlotHold,
+  SLOT_HOLD_SECONDS,
+  type SlotHold,
+} from "../services/slotHoldService";
 import {
   filterSessions,
   getDatesForFilters,
   type ChannelingFilters as Filters,
-  uniqueDoctors,
   uniqueCenters,
   uniqueSpecializations,
-  formatTime,
 } from "../utils/channelingUtils";
 import {
   isPatientFormValid,
@@ -58,6 +71,7 @@ import {
   shouldShowNewPatientRmoNotice,
   type RmoCaseTakingInfo,
 } from "../utils/rmoCaseTaking";
+import { mapApiSlotsToUi, normalizeSlotTime } from "../utils/slotUtils";
 
 const emptyFilters: Filters = {
   centerName: "",
@@ -67,62 +81,83 @@ const emptyFilters: Filters = {
 };
 
 const emptyPatient: PatientFormData = {
-  fullName: "",
+  title: "Mr.",
+  firstName: "",
+  lastName: "",
   nic: "",
   phone: "",
   email: "",
   notes: "",
 };
 
-const gridClass =
-  "grid items-start gap-6 lg:grid-cols-[272px_minmax(0,1fr)_380px] lg:gap-7";
+type CheckoutStep = "details" | "review" | "payment";
 
-function toDisplayTime(slot: ChannelingSessionSlot): string {
-  if (slot.slotTime) return slot.slotTime;
-  if (slot.time) return slot.time;
-  if (slot.startTime) return slot.startTime;
-  return "";
+interface ActiveSlotHold {
+  channelSlotId: number;
+  sessionId: number;
+  holdToken: string;
+  expiresAt: string;
+  slotTime?: string;
 }
 
-function mapApiSlotToUi(slot: ChannelingSessionSlot): SessionTimeSlot {
-  const slotId = slot.slotId ?? slot.id;
-  if (slotId == null) {
-    throw new Error("Slot id missing in API response");
-  }
-  const rawTime = toDisplayTime(slot);
-  const normalized = rawTime.length >= 5 ? `${rawTime.slice(0, 5)}:00` : rawTime;
-  const available =
-    typeof slot.isAvailable === "boolean"
-      ? slot.isAvailable
-      : typeof slot.available === "boolean"
-        ? slot.available
-        : slot.slotStatus
-          ? slot.slotStatus.toLowerCase() === "available"
-          : slot.status
-            ? slot.status.toLowerCase() === "available"
-          : true;
-  return {
-    id: slotId,
-    channelSlotId: slotId,
-    time: normalized,
-    label: normalized ? formatTime(normalized) : `Slot ${slotId}`,
-    available,
-  };
+function createProvisionalRef(): string {
+  return `PC-${Date.now().toString(36).toUpperCase()}`;
+}
+
+function applyHoldsToSlots(
+  slots: SessionTimeSlot[],
+  holds: SlotHold[],
+  ownChannelSlotId?: number | null,
+  ownSlotTime?: string | null,
+): SessionTimeSlot[] {
+  const ownTime = ownSlotTime ? normalizeSlotTime(ownSlotTime) : "";
+  const foreignHolds = holds.filter((hold) => {
+    if (ownChannelSlotId != null && hold.channelSlotId === ownChannelSlotId) {
+      return false;
+    }
+    if (ownTime && hold.slotTime && normalizeSlotTime(hold.slotTime) === ownTime) {
+      return false;
+    }
+    return true;
+  });
+
+  const heldIds = new Set(foreignHolds.map((hold) => hold.channelSlotId));
+  const heldTimes = new Set(
+    foreignHolds
+      .map((hold) => (hold.slotTime ? normalizeSlotTime(hold.slotTime) : ""))
+      .filter(Boolean),
+  );
+
+  return slots.map((slot) => {
+    const slotTime = normalizeSlotTime(slot.time);
+    const blockedById = heldIds.has(slot.channelSlotId);
+    const blockedByTime = Boolean(slotTime && heldTimes.has(slotTime));
+    return blockedById || blockedByTime ? { ...slot, available: false } : slot;
+  });
 }
 
 function ChannelingPage() {
   usePageTitle("Book Appointment");
   const { showToast } = useToast();
+  const { session: patientSession } = usePatientAuth();
   const [searchParams] = useSearchParams();
   const { sessions: allSessions, loading, error, reload } = useDiscoverSessions();
+  const [apiDoctors, setApiDoctors] = useState<
+    Awaited<ReturnType<typeof fetchPublicDoctors>>
+  >([]);
 
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [hasSearched, setHasSearched] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<Filters>(emptyFilters);
 
+  const [focusedSession, setFocusedSession] = useState<ChannelingSession | null>(
+    null,
+  );
   const [bookingSession, setBookingSession] = useState<ChannelingSession | null>(
     null,
   );
+  const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>("details");
+  const [provisionalRef, setProvisionalRef] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<SessionTimeSlot | null>(null);
   const [patient, setPatient] = useState<PatientFormData>(emptyPatient);
   const [detectedPatient, setDetectedPatient] =
@@ -140,9 +175,41 @@ function ChannelingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingSlots, setBookingSlots] = useState<SessionTimeSlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
+  const [slotHold, setSlotHold] = useState<ActiveSlotHold | null>(null);
+  const [holdBusy, setHoldBusy] = useState(false);
+  /** When hold API is down, allow booking without a server-side lock. */
+  const [holdDegraded, setHoldDegraded] = useState(false);
   const [scrolledToSessions, setScrolledToSessions] = useState(false);
-  const sessionsSectionRef = useRef<HTMLElement>(null);
+  const sessionsSectionRef = useRef<HTMLDivElement>(null);
+  const bookingSectionRef = useRef<HTMLDivElement>(null);
+  const bookingPanelRef = useRef<HTMLDivElement>(null);
   const appliedDeepLinkRef = useRef<string | null>(null);
+  const hasScrolledToBookingSectionRef = useRef(false);
+  const slotHoldRef = useRef<ActiveSlotHold | null>(null);
+  const expiredHoldTokenRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    slotHoldRef.current = slotHold;
+  }, [slotHold]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchPublicDoctors()
+      .then((data) => {
+        if (!cancelled) setApiDoctors(data);
+      })
+      .catch((err) => {
+        console.warn(
+          "[ChannelingPage] Public doctors API unavailable — using discover sessions.",
+          err,
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const doctorIdParam = searchParams.get("doctorId");
 
@@ -183,6 +250,49 @@ function ChannelingPage() {
   }, [hasSearched, doctorIdParam, scrolledToSessions, loading]);
 
   useEffect(() => {
+    if (loading || hasScrolledToBookingSectionRef.current) return;
+
+    const hash = window.location.hash.replace("#", "");
+
+    if (hash === "doctor-sessions") {
+      hasScrolledToBookingSectionRef.current = true;
+      const timer = window.setTimeout(() => {
+        sessionsSectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 200);
+      return () => window.clearTimeout(timer);
+    }
+
+    if (hash === "channeling-booking") {
+      hasScrolledToBookingSectionRef.current = true;
+      const timer = window.setTimeout(() => {
+        bookingSectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 200);
+      return () => window.clearTimeout(timer);
+    }
+
+    hasScrolledToBookingSectionRef.current = true;
+  }, [loading, doctorIdParam]);
+
+  useEffect(() => {
+    if (!bookingSession && !focusedSession) return;
+
+    const timer = window.setTimeout(() => {
+      bookingPanelRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+
+    return () => window.clearTimeout(timer);
+  }, [bookingSession, focusedSession]);
+
+  useEffect(() => {
     if (!bookingSession || allSessions.length === 0) return;
     const refreshed = allSessions.find(
       (s) => s.sessionId === bookingSession.sessionId,
@@ -198,8 +308,8 @@ function ChannelingPage() {
     [allSessions],
   );
   const filterDoctors = useMemo(
-    () => uniqueDoctors(allSessions),
-    [allSessions],
+    () => buildChannelingDoctorFilterOptions(allSessions, apiDoctors),
+    [allSessions, apiDoctors],
   );
   const availableDates = useMemo(
     () =>
@@ -217,27 +327,22 @@ function ChannelingPage() {
     return filterSessions(allSessions, appliedFilters);
   }, [allSessions, appliedFilters, hasSearched]);
 
-  const sessionsRevealResetKey = useMemo(
-    () =>
-      JSON.stringify(appliedFilters) +
-      visibleSessions.map((session) => session.sessionId).join(","),
-    [appliedFilters, visibleSessions],
-  );
-
-  const {
-    displayedCount: displayedSessionCount,
-    hasMore: hasMoreSessions,
-    loadMore: loadMoreSessions,
-    revealFromIndex: sessionRevealFromIndex,
-  } = useIncrementalReveal(
-    visibleSessions.length,
-    sessionsRevealResetKey,
-  );
-
-  const displayedSessions = useMemo(
-    () => visibleSessions.slice(0, displayedSessionCount),
-    [visibleSessions, displayedSessionCount],
-  );
+  const syncSlotsWithHolds = async (
+    sessionId: number,
+    ownChannelSlotId?: number | null,
+    ownSlotTime?: string | null,
+  ) => {
+    const [slots, holds] = await Promise.all([
+      fetchSessionSlots(sessionId),
+      fetchActiveHolds(sessionId).catch(() => [] as SlotHold[]),
+    ]);
+    return applyHoldsToSlots(
+      mapApiSlotsToUi(slots, sessionId),
+      holds,
+      ownChannelSlotId,
+      ownSlotTime,
+    );
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -251,9 +356,13 @@ function ChannelingPage() {
 
       setSlotsLoading(true);
       try {
-        const slots = await fetchSessionSlots(bookingSession.sessionId);
+        const nextSlots = await syncSlotsWithHolds(
+          bookingSession.sessionId,
+          slotHoldRef.current?.channelSlotId,
+          slotHoldRef.current?.slotTime,
+        );
         if (!cancelled) {
-          setBookingSlots(slots.map(mapApiSlotToUi));
+          setBookingSlots(nextSlots);
         }
       } catch {
         if (!cancelled) {
@@ -272,6 +381,67 @@ function ChannelingPage() {
     };
   }, [bookingSession]);
 
+  /** Keep slot availability fresh so held slots disappear for other patients. */
+  useEffect(() => {
+    if (!bookingSession || bookingReference) return;
+
+    const poll = window.setInterval(() => {
+      void syncSlotsWithHolds(
+        bookingSession.sessionId,
+        slotHoldRef.current?.channelSlotId,
+        slotHoldRef.current?.slotTime,
+      )
+        .then((nextSlots) => setBookingSlots(nextSlots))
+        .catch(() => undefined);
+    }, 8000);
+
+    return () => window.clearInterval(poll);
+  }, [bookingSession, bookingReference]);
+
+  const releaseCurrentHold = async () => {
+    const current = slotHoldRef.current;
+    if (!current) return;
+    slotHoldRef.current = null;
+    setSlotHold(null);
+    try {
+      await releaseSlotHold({
+        channelSlotId: current.channelSlotId,
+        holdToken: current.holdToken,
+        slotTime: current.slotTime,
+        sessionId: current.sessionId,
+      });
+    } catch {
+      // Ignore release failures; hold will expire server-side.
+    }
+  };
+
+  useEffect(() => {
+    const onPageHide = () => {
+      const current = slotHoldRef.current;
+      if (!current) return;
+      releaseSlotHoldBeacon({
+        channelSlotId: current.channelSlotId,
+        holdToken: current.holdToken,
+        slotTime: current.slotTime,
+        sessionId: current.sessionId,
+      });
+    };
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      window.removeEventListener("pagehide", onPageHide);
+      const current = slotHoldRef.current;
+      if (current) {
+        releaseSlotHoldBeacon({
+          channelSlotId: current.channelSlotId,
+          holdToken: current.holdToken,
+          slotTime: current.slotTime,
+          sessionId: current.sessionId,
+        });
+        slotHoldRef.current = null;
+      }
+    };
+  }, []);
+
   const handleFilterChange = (patch: Partial<Filters>) => {
     setFilters((prev) => ({ ...prev, ...patch }));
   };
@@ -279,7 +449,14 @@ function ChannelingPage() {
   const handleSearch = () => {
     setAppliedFilters({ ...filters });
     setHasSearched(true);
+    setFocusedSession(null);
     resetBooking();
+    window.setTimeout(() => {
+      sessionsSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 80);
   };
 
   const resetPatientBookingState = () => {
@@ -290,7 +467,10 @@ function ChannelingPage() {
   };
 
   const resetBooking = () => {
+    void releaseCurrentHold();
     setBookingSession(null);
+    setCheckoutStep("details");
+    setProvisionalRef("");
     setSelectedSlot(null);
     resetPatientBookingState();
     setBookingReference(null);
@@ -298,23 +478,225 @@ function ChannelingPage() {
     setConfirmedRmoInfo(null);
     setSubmitError(null);
     setIsSubmitting(false);
+    setHoldBusy(false);
+    setHoldDegraded(false);
     setBookingSlots([]);
   };
 
-  const handleSelectSession = (session: ChannelingSession) => {
+  /** Channel → open doctor sessions list */
+  const handleChannelDoctor = (session: ChannelingSession) => {
+    setFocusedSession(session);
+    resetBooking();
+  };
+
+  /** Book → open booking form for a session */
+  const handleBookSession = (session: ChannelingSession) => {
+    void releaseCurrentHold();
+    expiredHoldTokenRef.current = null;
     setBookingSession(session);
+    setCheckoutStep("details");
+    setProvisionalRef("");
     setSelectedSlot(null);
     resetPatientBookingState();
     setPaymentMethod(null);
     setBookingReference(null);
     setConfirmedRmoInfo(null);
     setSubmitError(null);
+    setHoldDegraded(false);
     setBookingSlots([]);
   };
 
-  const handleCloseBooking = () => {
+  const handleBackToResults = () => {
+    setFocusedSession(null);
     resetBooking();
   };
+
+  const handleBackToDoctorSessions = () => {
+    resetBooking();
+  };
+
+  const handleCloseBooking = () => {
+    setFocusedSession(null);
+    resetBooking();
+  };
+
+  const isOwnHeldSlot = (slot: SessionTimeSlot, hold?: ActiveSlotHold | null) => {
+    if (!hold) return false;
+    if (hold.channelSlotId === slot.channelSlotId) return true;
+    if (
+      hold.slotTime &&
+      normalizeSlotTime(hold.slotTime) === normalizeSlotTime(slot.time)
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  const handleSelectSlot = async (slot: SessionTimeSlot) => {
+    if (!bookingSession || holdBusy) return;
+    if (!slot.available && !isOwnHeldSlot(slot, slotHold)) {
+      setSubmitError(
+        "This time slot is currently reserved by another patient. Please choose another slot.",
+      );
+      return;
+    }
+
+    if (isOwnHeldSlot(slot, slotHold)) {
+      setSelectedSlot(slot);
+      return;
+    }
+
+    setHoldBusy(true);
+    setSubmitError(null);
+
+    try {
+      if (slotHold) {
+        await releaseSlotHold({
+          channelSlotId: slotHold.channelSlotId,
+          holdToken: slotHold.holdToken,
+          slotTime: slotHold.slotTime,
+          sessionId: slotHold.sessionId,
+        }).catch(() => undefined);
+        slotHoldRef.current = null;
+        setSlotHold(null);
+      }
+
+      const reserved = await reserveSlotHold({
+        channelSlotId: slot.channelSlotId,
+        sessionId: bookingSession.sessionId,
+        durationSeconds: SLOT_HOLD_SECONDS,
+        slotTime: slot.time,
+      });
+
+      const nextHold: ActiveSlotHold = {
+        channelSlotId: reserved.channelSlotId,
+        sessionId: reserved.sessionId,
+        holdToken: reserved.holdToken,
+        expiresAt: reserved.expiresAt,
+        slotTime: reserved.slotTime || normalizeSlotTime(slot.time),
+      };
+      expiredHoldTokenRef.current = null;
+      slotHoldRef.current = nextHold;
+      setSlotHold(nextHold);
+      setHoldDegraded(false);
+      setSelectedSlot(slot);
+      setSubmitError(null);
+
+      const refreshed = await syncSlotsWithHolds(
+        bookingSession.sessionId,
+        nextHold.channelSlotId,
+        nextHold.slotTime,
+      );
+      setBookingSlots(refreshed);
+    } catch (err) {
+      const kind = getSlotHoldFailureKind(err);
+
+      if (kind === "unavailable") {
+        // Hold server down — still allow selection so booking is not blocked.
+        expiredHoldTokenRef.current = null;
+        slotHoldRef.current = null;
+        setSlotHold(null);
+        setHoldDegraded(true);
+        setSelectedSlot(slot);
+        setSubmitError(getHoldErrorMessage(err, "Slot hold service unavailable."));
+        return;
+      }
+
+      setSelectedSlot(null);
+      setSubmitError(
+        getHoldErrorMessage(
+          err,
+          "Could not reserve this time slot. Please try another slot.",
+        ),
+      );
+      if (bookingSession) {
+        const refreshed = await syncSlotsWithHolds(bookingSession.sessionId, null);
+        setBookingSlots(refreshed);
+      }
+    } finally {
+      setHoldBusy(false);
+    }
+  };
+
+  const handleContinueToReview = async () => {
+    if (
+      !bookingSession ||
+      !selectedSlot ||
+      !isPatientFormValid(validationErrors) ||
+      pendingProfileAcceptance
+    ) {
+      return;
+    }
+
+    setSubmitError(null);
+    setHoldBusy(true);
+
+    try {
+      const reserved = await reserveSlotHold({
+        channelSlotId: selectedSlot.channelSlotId,
+        sessionId: bookingSession.sessionId,
+        holdToken: slotHold?.holdToken,
+        durationSeconds: SLOT_HOLD_SECONDS,
+        slotTime: selectedSlot.time,
+      });
+      const nextHold: ActiveSlotHold = {
+        channelSlotId: reserved.channelSlotId,
+        sessionId: reserved.sessionId,
+        holdToken: reserved.holdToken,
+        expiresAt: reserved.expiresAt,
+        slotTime: reserved.slotTime || normalizeSlotTime(selectedSlot.time),
+      };
+      slotHoldRef.current = nextHold;
+      setSlotHold(nextHold);
+      setHoldDegraded(false);
+      setProvisionalRef((prev) => prev || createProvisionalRef());
+      setCheckoutStep("review");
+    } catch (err) {
+      const kind = getSlotHoldFailureKind(err);
+
+      if (kind === "unavailable") {
+        setHoldDegraded(true);
+        setProvisionalRef((prev) => prev || createProvisionalRef());
+        setCheckoutStep("review");
+        setSubmitError(null);
+        return;
+      }
+
+      if (kind === "conflict") {
+        setSelectedSlot(null);
+        slotHoldRef.current = null;
+        setSlotHold(null);
+        setSubmitError(getHoldErrorMessage(err, "Slot is reserved."));
+        const refreshed = await syncSlotsWithHolds(bookingSession.sessionId, null);
+        setBookingSlots(refreshed);
+        return;
+      }
+
+      setSubmitError(
+        getHoldErrorMessage(err, "Could not reserve this time slot. Please try again."),
+      );
+    } finally {
+      setHoldBusy(false);
+    }
+  };
+
+  const handleContinueToPayment = () => {
+    setCheckoutStep("payment");
+  };
+
+  const handleEditDetails = () => {
+    setCheckoutStep("details");
+    setSubmitError(null);
+  };
+
+  const doctorSessions = useMemo(() => {
+    if (!focusedSession) return [];
+    return allSessions.filter(
+      (s) =>
+        s.doctorId === focusedSession.doctorId &&
+        s.centerName === focusedSession.centerName,
+    );
+  }, [allSessions, focusedSession]);
 
   const pendingProfileAcceptance =
     Boolean(detectedPatient) && !profileLinked;
@@ -328,11 +710,46 @@ function ChannelingPage() {
     [patient, profileLinked, pendingProfileAcceptance],
   );
 
-  const canSubmit =
+  const detailsReady =
     bookingSession !== null &&
     selectedSlot !== null &&
-    paymentMethod !== null &&
-    isPatientFormValid(validationErrors);
+    isPatientFormValid(validationErrors) &&
+    !pendingProfileAcceptance;
+
+  const canSubmit =
+    detailsReady && paymentMethod !== null;
+
+  const countdownActive =
+    Boolean(slotHold) &&
+    !bookingReference &&
+    (checkoutStep === "details" ||
+      checkoutStep === "review" ||
+      checkoutStep === "payment");
+
+  const { label: timerLabel, expired: timerExpired } = useBookingCountdown(
+    countdownActive,
+    slotHold?.expiresAt ?? null,
+  );
+
+  useEffect(() => {
+    if (!timerExpired || !slotHold) return;
+    // Prevent re-entry / immediate clear of a freshly reserved slot.
+    if (expiredHoldTokenRef.current === slotHold.holdToken) return;
+    expiredHoldTokenRef.current = slotHold.holdToken;
+
+    void (async () => {
+      await releaseCurrentHold();
+      setSelectedSlot(null);
+      setCheckoutStep("details");
+      setSubmitError(
+        "Your slot hold expired. The time slot was released. Please select a slot again.",
+      );
+      if (bookingSession) {
+        const refreshed = await syncSlotsWithHolds(bookingSession.sessionId, null);
+        setBookingSlots(refreshed);
+      }
+    })();
+  }, [timerExpired, slotHold, bookingSession]);
 
   const isNewPatient = isNewPatientBooking(
     profileLinked,
@@ -383,7 +800,9 @@ function ChannelingPage() {
     setIsSubmitting(true);
 
     try {
-      const channelSlotId = Number(selectedSlot.channelSlotId);
+      const channelSlotId = Number(
+        selectedSlot.checkoutSlotId ?? selectedSlot.channelSlotId,
+      );
       if (!Number.isFinite(channelSlotId) || channelSlotId <= 0) {
         throw new Error("Invalid slot id. Please reselect a time slot.");
       }
@@ -391,7 +810,7 @@ function ChannelingPage() {
       const checkoutOrigin = window.location.origin;
       const response = await checkoutChannelingBooking({
         channelSlotId,
-        fullName: patient.fullName.trim(),
+        fullName: getPatientFullName(patient),
         mobileNumber: formatMobileForApi(patient.phone),
         nicOrPassport: patient.nic.trim() || undefined,
         existingPatientRegistrationId: patient.existingPatientRegistrationId,
@@ -429,10 +848,13 @@ function ChannelingPage() {
               : null;
 
       setBookingReference(reference ?? "Reference not provided");
+      // Slot is booked — clear local hold without releasing (server hold can expire).
+      slotHoldRef.current = null;
+      setSlotHold(null);
       showToast(USER_MESSAGES.bookingSuccess);
       await reload();
-      const refreshedSlots = await fetchSessionSlots(bookingSession.sessionId);
-      setBookingSlots(refreshedSlots.map(mapApiSlotToUi));
+      const refreshedSlots = await syncSlotsWithHolds(bookingSession.sessionId, null);
+      setBookingSlots(refreshedSlots);
     } catch (err) {
       console.warn("[ChannelingPage] Booking failed.", err);
       setSubmitError(getCheckoutErrorMessage(err, USER_MESSAGES.bookingFailed));
@@ -442,10 +864,6 @@ function ChannelingPage() {
   };
 
   const showResults = !loading && !error && hasSearched;
-  const totalOpenSlots = visibleSessions.reduce(
-    (sum, s) => sum + s.availableSlotCount,
-    0,
-  );
 
   const selectedDoctorName = useMemo(() => {
     if (!appliedFilters.doctorId) return null;
@@ -458,18 +876,6 @@ function ChannelingPage() {
     );
     return fromSession ? getSessionDoctorName(fromSession) : null;
   }, [appliedFilters.doctorId, filterDoctors, allSessions]);
-
-  const sessionsSubtitle = useMemo(() => {
-    if (!hasSearched) {
-      return "Apply filters and search to view sessions";
-    }
-    if (selectedDoctorName) {
-      return visibleSessions.length > 0
-        ? `Showing sessions for ${selectedDoctorName}`
-        : `Searching sessions for ${selectedDoctorName}`;
-    }
-    return `${visibleSessions.length} session${visibleSessions.length === 1 ? "" : "s"} available`;
-  }, [hasSearched, selectedDoctorName, visibleSessions.length]);
 
   const handlePatientChange = (patch: Partial<PatientFormData>) => {
     if (profileLinked) {
@@ -493,52 +899,77 @@ function ChannelingPage() {
     setPatient(existingPatientToFormData(detectedPatient, patient.notes));
   };
 
-  const bookingPanelProps = {
-    session: bookingSession!,
-    slots: bookingSlots,
-    selectedSlot,
-    onSelectSlot: setSelectedSlot,
-    patient,
-    errors: validationErrors,
-    pendingProfileAcceptance,
-    canSubmit,
-    isSubmitting,
-    submitError,
-    slotsLoading,
-    bookingReference,
-    rmoCaseTakingInfo,
-    detectedPatient,
-    profileLinked,
-    onChange: handlePatientChange,
-    onDetectedPatientChange: setDetectedPatient,
-    onPatientLookupSettledChange: setPatientLookupSettled,
-    onUseExistingProfile: handleUseExistingProfile,
-    paymentMethod,
-    onPaymentMethodChange: setPaymentMethod,
-    onSubmit: handleConfirmBooking,
-    onClose: handleCloseBooking,
-  };
+  const handleSignedInProfile = useCallback(
+    (profile: ExistingPatientProfile) => {
+      setDetectedPatient(profile);
+      setProfileLinked(true);
+      setPatientLookupSettled(true);
+      setPatient((prev) => existingPatientToFormData(profile, prev.notes));
+    },
+    [],
+  );
+
+  const handleClearSignedInProfile = useCallback(() => {
+    setProfileLinked(false);
+    setDetectedPatient(null);
+    setPatientLookupSettled(false);
+    setPatient((prev) => ({
+      ...emptyPatient,
+      notes: prev.notes,
+    }));
+  }, []);
+
+  useEffect(() => {
+    if (!patientSession?.patient || profileLinked) return;
+    handleSignedInProfile(patientSession.patient);
+  }, [patientSession, profileLinked, handleSignedInProfile]);
+
+  const showDoctorStep = Boolean(focusedSession) && !bookingSession;
+  const showBookingStep = Boolean(bookingSession);
+  const showDetailsStep =
+    showBookingStep && (checkoutStep === "details" || Boolean(bookingReference));
+  const showReviewStep =
+    showBookingStep && checkoutStep === "review" && !bookingReference;
+  const showPaymentStep =
+    showBookingStep && checkoutStep === "payment" && !bookingReference;
+  const showResultsList = showResults && !focusedSession && !bookingSession;
+  const pageMode =
+    hasSearched || focusedSession || bookingSession ? "results" : "landing";
+  const showSearchBar = pageMode === "results" && !focusedSession && !bookingSession;
+
+  const filterProps = {
+    filters,
+    centers,
+    specializations,
+    doctors: filterDoctors,
+    availableDates,
+    onChange: handleFilterChange,
+    onSearch: handleSearch,
+    highlightedDoctorId: doctorIdParam,
+  } as const;
+
+  const searchCard =
+    loading || error ? (
+      loading ? <FilterPanelSkeleton /> : null
+    ) : (
+      <ChannelingFilters {...filterProps} variant="card" />
+    );
+
+  const searchBar =
+    !loading && !error ? (
+      <ChannelingFilters {...filterProps} variant="bar" />
+    ) : null;
 
   return (
     <ChannelingPageLayout
-      doctorCount={filterDoctors.length}
-      centerCount={centers.length}
-      sessionCount={allSessions.length}
+      mode={pageMode}
+      searchCard={!hasSearched ? searchCard : undefined}
+      searchBar={showSearchBar ? searchBar : undefined}
     >
-      {loading && (
-        <div className={gridClass}>
-          <div className="lg:col-span-1">
-            <FilterPanelSkeleton />
-          </div>
-          <div className="grid gap-4 grid-cols-1 lg:col-span-1">
-            {Array.from({ length: 4 }, (_, i) => (
-              <SessionCardSkeleton key={i} />
-            ))}
-          </div>
-          <div className="hidden rounded-3xl border border-slate-200 bg-white/60 p-5 lg:col-span-1 lg:block">
-            <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
-          </div>
-        </div>
+      {loading && !hasSearched && (
+        <p className="text-center text-sm font-medium text-slate-500">
+          Loading available sessions…
+        </p>
       )}
 
       {!loading && error && (
@@ -552,184 +983,127 @@ function ChannelingPage() {
         />
       )}
 
-      {!loading && !error && (
-        <>
-        <div className={gridClass}>
-          <div className="lg:col-span-1">
-            <ChannelingFilters
-              filters={filters}
-              centers={centers}
-              specializations={specializations}
-              doctors={filterDoctors}
-              availableDates={availableDates}
-              onChange={handleFilterChange}
-              onSearch={handleSearch}
-              highlightedDoctorId={doctorIdParam}
-            />
+      {!loading && !error && !hasSearched && (
+        <div className="channeling-landing-hint">
+          <div className="channeling-landing-hint__card">
+            <p className="channeling-landing-hint__title">
+              {channelingLandingHint.title}
+            </p>
+            <p className="channeling-landing-hint__desc">
+              {channelingLandingHint.description}
+            </p>
           </div>
+        </div>
+      )}
 
-          <main
-            ref={sessionsSectionRef}
-            id="doctor-sessions"
-            className="channeling-panel min-w-0 scroll-mt-24 animate-fade-in-up lg:col-span-1"
-            style={{ animationDelay: "100ms" }}
-          >
-            <ChannelingSectionHeader
-              step="Step 2"
-              title="Doctor Sessions"
-              subtitle={sessionsSubtitle}
-              badge={
-                hasSearched ? (
-                  <span
-                    className={
-                      visibleSessions.length > 0
-                        ? "channeling-count-badge"
-                        : "channeling-count-badge channeling-count-badge--muted"
-                    }
-                  >
-                    {visibleSessions.length} session
-                    {visibleSessions.length === 1 ? "" : "s"}
-                  </span>
-                ) : undefined
-              }
-            />
-
-            <div className="channeling-sessions-body px-4 pb-5 pt-4 sm:px-5 sm:pb-6">
-              {hasSearched && selectedDoctorName && (
-                <div className="channeling-selected-doctor-banner" role="status">
-                  <span aria-hidden="true">👨‍⚕️</span>
-                  <strong>Selected doctor: {selectedDoctorName}</strong>
-                </div>
-              )}
-
-              {hasSearched && (
-                <div className="channeling-sessions-meta mb-5 flex flex-wrap items-center gap-2">
-                  {visibleSessions.length > 0 && (
-                    <span className="channeling-count-badge">
-                      {totalOpenSlots} slots open
-                    </span>
-                  )}
-                  {hasSearched && visibleSessions.length > 0 && (
-                    <span className="channeling-meta-chip">
-                      {visibleSessions.length} doctor session
-                      {visibleSessions.length === 1 ? "" : "s"}
-                    </span>
-                  )}
-                </div>
-              )}
-
-            {!hasSearched && (
-              <div className="rounded-3xl border border-dashed border-brand-200/70 bg-white/70 px-5 py-8 text-center shadow-sm backdrop-blur-sm sm:py-10">
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-100 to-brand-50 text-2xl">
-                  🔍
-                </div>
-                <p className="text-base font-bold text-slate-800">Find your specialist</p>
-                <p className="mx-auto mt-1 max-w-md text-sm font-medium text-slate-600">
-                  Use the filters to search by center, specialization, doctor, or date.
-                </p>
-                {centers.length > 0 && (
-                  <div className="mx-auto mt-4 flex max-w-lg flex-wrap justify-center gap-2">
-                    {centers.slice(0, 4).map((c) => (
-                      <span
-                        key={c}
-                        className="rounded-full border border-slate-200/80 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm"
-                      >
-                        {c}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {showResults && visibleSessions.length === 0 && (
-              <div className="rounded-3xl border border-dashed border-slate-200 bg-white/80 px-5 py-8 text-center backdrop-blur-sm">
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-50 text-2xl">
-                  📅
-                </div>
-                <p className="font-bold text-slate-800">
+      <div
+        ref={bookingSectionRef}
+        id="channeling-booking"
+        className="scroll-mt-24"
+      >
+        {showResultsList ? (
+          <div ref={sessionsSectionRef} className="min-w-0 animate-fade-in-up">
+            {visibleSessions.length === 0 ? (
+              <div className="channeling-empty-state">
+                <p className="channeling-empty-state__title">
                   {selectedDoctorName
                     ? `No available sessions for ${formatDoctorDisplayName(selectedDoctorName)}`
                     : "No sessions found"}
                 </p>
-                <p className="mt-1 text-sm font-medium text-slate-600">
+                <p className="channeling-empty-state__desc">
                   {selectedDoctorName
                     ? "This doctor has no upcoming channeling sessions. Try another specialist or check back later."
-                    : "Adjust your filters and try again."}
+                    : "Adjust your search and try again."}
                 </p>
               </div>
-            )}
-
-            {showResults && visibleSessions.length > 0 && (
-              <div className="channeling-sessions-list">
-                <p
-                  className="channeling-sessions-showcount"
-                  role="status"
-                  aria-live="polite"
-                >
-                  Showing {displayedSessionCount} of {visibleSessions.length}
-                </p>
-
-                <div className="channeling-sessions-grid">
-                  {displayedSessions.map((session, index) => (
-                    <div
-                      key={session.sessionId}
-                      className={`channeling-session-card-wrap${
-                        index >= sessionRevealFromIndex
-                          ? " channeling-session-card-wrap--reveal"
-                          : ""
-                      }`}
-                      style={{
-                        animationDelay:
-                          index >= sessionRevealFromIndex
-                            ? `${(index - sessionRevealFromIndex) * 70}ms`
-                            : `${Math.min(index * 60, 240)}ms`,
-                      }}
-                    >
-                      <ChannelingSessionCard
-                        session={session}
-                        isActive={
-                          bookingSession?.sessionId === session.sessionId
-                        }
-                        onSelect={() => handleSelectSession(session)}
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {hasMoreSessions ? (
-                  <div className="channeling-sessions-loadmore">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={loadMoreSessions}
-                      className="channeling-sessions-loadmore__btn"
-                    >
-                      Load More Sessions
-                    </Button>
-                  </div>
-                ) : null}
-              </div>
-              )}
-            </div>
-          </main>
-
-          <div className="hidden lg:col-span-1 lg:block">
-            {bookingSession ? (
-              <ChannelingBookingPanel {...bookingPanelProps} />
             ) : (
-              <ChannelingBookingPlaceholder />
+              <ChannelingResultsList
+                sessions={visibleSessions}
+                onSelect={handleChannelDoctor}
+              />
             )}
           </div>
+        ) : null}
 
-          {bookingSession ? (
-            <div className="scroll-mt-24 lg:hidden">
-              <ChannelingBookingPanel {...bookingPanelProps} />
-            </div>
-          ) : null}
-        </div>
-        </>
-      )}
+        {showDoctorStep && focusedSession ? (
+          <div ref={bookingPanelRef} id="channeling-doctor-sessions">
+            <ChannelingDoctorSessionsView
+              anchorSession={focusedSession}
+              sessions={doctorSessions}
+              onBook={handleBookSession}
+              onBack={handleBackToResults}
+            />
+          </div>
+        ) : null}
+
+        {showDetailsStep && bookingSession ? (
+          <div ref={bookingPanelRef} id="channeling-booking-panel">
+            <ChannelingBookingFormView
+              session={bookingSession}
+              slots={bookingSlots}
+              selectedSlot={selectedSlot}
+              onSelectSlot={handleSelectSlot}
+              patient={patient}
+              errors={validationErrors}
+              pendingProfileAcceptance={pendingProfileAcceptance}
+              canContinue={detailsReady && (Boolean(slotHold) || holdDegraded)}
+              isSubmitting={isSubmitting}
+              submitError={submitError}
+              slotsLoading={slotsLoading}
+              bookingReference={bookingReference}
+              rmoCaseTakingInfo={rmoCaseTakingInfo}
+              detectedPatient={detectedPatient}
+              profileLinked={profileLinked}
+              paymentMethod={paymentMethod}
+              timerLabel={slotHold ? timerLabel : null}
+              holdBusy={holdBusy}
+              holdDegraded={holdDegraded}
+              onChange={handlePatientChange}
+              onDetectedPatientChange={setDetectedPatient}
+              onPatientLookupSettledChange={setPatientLookupSettled}
+              onUseExistingProfile={handleUseExistingProfile}
+              onSignedInProfile={handleSignedInProfile}
+              onClearSignedInProfile={handleClearSignedInProfile}
+              onContinue={() => {
+                void handleContinueToReview();
+              }}
+              onBack={handleBackToDoctorSessions}
+              onDone={handleCloseBooking}
+            />
+          </div>
+        ) : null}
+
+        {showReviewStep && bookingSession && selectedSlot ? (
+          <div ref={bookingPanelRef} id="channeling-review">
+            <ChannelingReviewView
+              session={bookingSession}
+              selectedSlot={selectedSlot}
+              patient={patient}
+              provisionalRef={provisionalRef}
+              timerLabel={timerLabel}
+              rmoCaseTakingInfo={rmoCaseTakingInfo}
+              onBack={handleEditDetails}
+              onContinue={handleContinueToPayment}
+            />
+          </div>
+        ) : null}
+
+        {showPaymentStep && bookingSession ? (
+          <div ref={bookingPanelRef} id="channeling-payment">
+            <ChannelingPaymentView
+              session={bookingSession}
+              requiresRmoFee={rmoCaseTakingInfo !== null}
+              paymentMethod={paymentMethod}
+              onPaymentMethodChange={setPaymentMethod}
+              timerLabel={timerLabel}
+              isSubmitting={isSubmitting}
+              submitError={submitError}
+              onEdit={handleEditDetails}
+              onPay={handleConfirmBooking}
+            />
+          </div>
+        ) : null}
+      </div>
     </ChannelingPageLayout>
   );
 }

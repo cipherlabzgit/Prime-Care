@@ -57,7 +57,7 @@ export function sortReviews(
 }
 
 export function formatAverageRating(value: number): string {
-  if (!value || value <= 0) return "—";
+  if (!value || value <= 0) return "-";
   return value.toFixed(1);
 }
 

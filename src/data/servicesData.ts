@@ -1,27 +1,34 @@
 import type { ClinicalService, ServiceStatistic } from "../types/service";
 
 const serviceImages = {
-  homeopathy: "/images/services/general-medicine.jpg",
-  therapeutic: "/images/services/pediatrics.jpg",
-  wellness: "/images/hero-consultation.png",
-  laboratory: "/images/services/laboratory.jpg",
-  pharmacy: "/images/services/radiology.jpg",
-  corporate: "/images/services/cardiology.jpg",
+  homeopathy:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790927633/homeo_dlfjw1.png",
+  speechLanguage:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790927631/speech_w7qx1y.jpg",
+  therapeutic:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790927631/other_subzlc.jpg",
+  wellness:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790927632/wellness_r6bjrw.jpg",
+  laboratory: "/images/services/laboratory.png",
+  pharmacy:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790928012/Gemini_Generated_Image_jmr4mhjmr4mhjmr4_b7dvwa.jpg",
+  corporate:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/v1790928231/Gemini_Generated_Image_6pxj6y6pxj6y6pxj_lllpwc.jpg",
 } as const;
 
 export const servicesHero = {
   eyebrow: "Our Services",
-  title: "Comprehensive Care. One Connected Healthcare Experience.",
+  title: "Integrative Care",
   description:
     "At Premier Care Integrative Clinic, we bring together a range of healthcare and therapeutic services to support individuals at different stages of their health journey.",
   image: "/images/hero-consultation.png",
 } as const;
 
 export const servicesStatistics: ServiceStatistic[] = [
-  { id: "disciplines", value: "6+", label: "Healthcare Disciplines" },
-  { id: "hours", value: "9–9", label: "Daily Clinic Hours" },
+  { id: "disciplines", value: "7+", label: "Healthcare Disciplines" },
+  { id: "hours", value: "9am–9pm", label: "Daily Clinic Hours" },
   { id: "languages", value: "3", label: "Languages Supported" },
-  { id: "parking", value: "✓", label: "Parking Available" },
+  { id: "parking", value: "Yes", label: "Parking Available" },
 ];
 
 export const clinicalServices: ClinicalService[] = [
@@ -36,40 +43,67 @@ export const clinicalServices: ClinicalService[] = [
     services: [
       "Holistic Homeopathic consultations",
       "Individualized care planning",
-      "Chronic and recurrent health concerns",
+      "Acute and Chronic Diseases",
       "Skin-related and allergic tendencies",
       "Digestive and respiratory wellbeing",
       "Women's and children's health support",
       "General wellness and preventive care",
     ],
     treatments: [
-      "Listen — understand your concerns and experiences",
-      "Explore — consider health history and influencing factors",
-      "Individualize — personalized approaches for each person",
-      "Support — journey toward improved health and wellbeing",
+      "Listen: understand your concerns and experiences",
+      "Explore: consider health history and influencing factors",
+      "Individualize: personalized approaches for each person",
+      "Prescribe: provide the right homeopathic medicine for you",
+      "Support: journey toward improved health and wellbeing",
+    ],
+  },
+  {
+    id: "speech-language",
+    name: "Speech-Language Therapy",
+    slug: "speech-language-therapy",
+    description:
+      "Our Speech-Language Therapy services support children and adults in developing effective communication, speech, language, and feeding-related skills. Through individualized assessment and evidence-informed intervention, we help clients communicate more clearly, confidently, and independently in everyday life.",
+    icon: "💬",
+    image: serviceImages.speechLanguage,
+    services: [
+      "Speech & Language Assessment",
+      "Individualized Speech-Language Therapy",
+      "Early Communication & Developmental Support",
+      "Adult Communication Rehabilitation",
+      "Feeding & Swallowing Support",
+      "Augmentative & Alternative Communication (AAC)",
+      "Parent & Caregiver Guidance",
+    ],
+    treatments: [
+      "Speech & Language Development",
+      "Social & Functional Communication",
+      "Fluency & Voice",
+      "Neurodevelopmental & Learning Needs",
+      "Adult Communication & Rehabilitation",
+      "Eating, Drinking & Swallowing",
     ],
   },
   {
     id: "therapeutic",
-    name: "Therapeutic Services",
+    name: "Other Therapeutic Services",
     slug: "therapeutic-services",
     description:
       "Health is not only about treating illness. It is also about being able to communicate, move freely, participate in daily life, manage emotions, and reach your potential. Our therapeutic services support individuals across different stages of life.",
     icon: "🧠",
     image: serviceImages.therapeutic,
     services: [
-      "Speech Therapy",
       "Physiotherapy",
       "Occupational Therapy",
       "Psychological Counseling",
       "Clinical Psychology",
+      "Diet & Nutrition Support",
     ],
     treatments: [
-      "Communication and speech support",
       "Mobility, strength, and recovery",
       "Daily living and functional skills",
       "Emotional wellbeing and counseling",
       "Professional psychological assessment and care",
+      "Diet planning and nutrition guidance",
     ],
   },
   {
@@ -86,6 +120,7 @@ export const clinicalServices: ClinicalService[] = [
       "Health awareness programs",
       "Individual wellness consultations",
       "Healthy living support",
+      "Diet and nutrition support",
       "Corporate wellness programs",
       "Personalized health improvement pathways",
     ],
@@ -93,6 +128,7 @@ export const clinicalServices: ClinicalService[] = [
       "Proactive health awareness",
       "Risk reduction strategies",
       "Healthy habit development",
+      "Diet and nutrition guidance",
       "Long-term wellbeing planning",
     ],
   },
@@ -122,7 +158,7 @@ export const clinicalServices: ClinicalService[] = [
     name: "Pharmacy, Nutraceuticals & Wellness Solutions",
     slug: "pharmacy-wellness",
     description:
-      "Our pharmacy and wellness services provide access to carefully selected healthcare products that may complement an individual's personalized care plan. Products and supplements should form part of a thoughtful healthcare plan—not replace professional assessment and care.",
+      "Our pharmacy and wellness services provide access to carefully selected healthcare products that may complement an individual's personalized care plan. Products and supplements should form part of a thoughtful healthcare plan, not replace professional assessment and care.",
     icon: "💊",
     image: serviceImages.pharmacy,
     services: [
@@ -183,6 +219,3 @@ export function getHomeServiceCards(): Pick<
     icon,
   }));
 }
-
-export const homeopathyDisclaimer =
-  "Homeopathic care is individualized and should be discussed with a qualified practitioner. Patients should not discontinue prescribed conventional medication or delay emergency medical treatment without consulting an appropriate healthcare professional.";

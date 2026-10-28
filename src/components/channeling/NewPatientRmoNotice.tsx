@@ -32,7 +32,7 @@ function NewPatientRmoNotice({
             id={isConfirmation ? "rmo-confirmed-heading" : "rmo-warning-heading"}
             className="rmo-notice__title"
           >
-            {isConfirmation ? "Report to Reception first" : "First visit — arrive early"}
+            {isConfirmation ? "Report to Reception first" : "First visit: arrive early"}
           </h4>
           <p className="rmo-notice__text">
             {isConfirmation
@@ -72,7 +72,7 @@ function NewPatientRmoNotice({
           className="rmo-notice__title"
         >
           {isConfirmation
-            ? "New patient — report to Reception first"
+            ? "New patient: report to Reception first"
             : "New patient appointment"}
         </h4>
         <p className="rmo-notice__text">

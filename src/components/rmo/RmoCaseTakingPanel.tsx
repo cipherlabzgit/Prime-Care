@@ -190,7 +190,7 @@ function RmoCaseTakingPanel({
           <p>
             Case taking is complete
             {booking.newPatientRegistrationId
-              ? ` — patient registration #${booking.newPatientRegistrationId} created.`
+              ? ` Patient registration #${booking.newPatientRegistrationId} created.`
               : "."}
           </p>
           {booking.caseTakingNotes ? (

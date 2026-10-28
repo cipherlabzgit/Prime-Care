@@ -24,26 +24,47 @@ export const clinicInfo = {
 
 export const homeHero = {
   badge: "Premier Care Integrative Clinic",
-  title: "Healthcare That Looks Beyond the Symptoms",
+  title: "Beyond the Symptoms",
   subtitle: clinicInfo.tagline,
-  description:
-    "At Premier Care Integrative Clinic, we believe healthcare should go beyond simply managing symptoms. We take time to understand your health history, your individual circumstances, and the factors that may be influencing your wellbeing.",
-  closing: "Your health is personal. Your care should be too.",
   primaryCta: "Book an Appointment",
   secondaryCta: "Explore Our Services",
 } as const;
 
 export const welcomeSection = {
   eyebrow: "Welcome to Premier Care",
-  title: "A More Complete Approach to Healthcare",
+  title: "Complete Care",
   lead: "Your health is more than a collection of symptoms.",
+  image:
+    "https://res.cloudinary.com/dbyuqt5xh/image/upload/c_limit,w_1800/q_auto,f_auto/v1791525782/Gemini_Generated_Image_qghv0uqghv0uqghv_e008vp.png",
+  imageAlt: "Premier Care integrative clinic medical team in teal scrubs",
   paragraphs: [
-    "Every individual has a unique story—shaped by their physical health, emotional wellbeing, lifestyle, environment, experiences, and personal history. At Premier Care Integrative Clinic, we take a holistic view of that story.",
-    "Our approach brings together multiple healthcare disciplines, including Homeopathy, therapeutic services, psychological care, diagnostics, nutraceuticals, supplements, wellness programs, and preventive healthcare.",
-    "Rather than focusing only on what is happening today, we strive to understand the bigger picture, explore the underlying factors contributing to health concerns, support the body's journey toward recovery and balance, and empower you with knowledge and preventive strategies for the future.",
+    "Your health is more than a collection of symptoms.",
+    "Every person has a unique story, shaped by physical health, emotional wellbeing, lifestyle, and personal history. At Premier Care, we look at that whole story.",
   ],
-  closing:
-    "Because we believe the goal of healthcare is not simply to help you feel better today. It is to help you Live Better. Live Longer. Live Fully.",
+  disciplinesIntro:
+    "Our approach brings together multiple healthcare disciplines, including:",
+  disciplines: [
+    "Homeopathy",
+    "Speech Therapy",
+    "Physiotherapy",
+    "Occupational Therapy",
+    "Educational Therapy",
+    "Psychotherapy",
+    "Counselling",
+    "Performance Enhancement",
+    "Sex Therapy",
+    "Hippotherapy",
+    "Addiction Recovery",
+    "Psychiatric Assessment",
+    "ANTS based Therapy",
+    "Wellness",
+    "Laboratory Services",
+    "Nutraceuticals & Supplements",
+    "Preventive Healthcare",
+    "Diet & Nutrition Support",
+    "Diagnostics",
+    "Corporate Healthcare",
+  ],
 } as const;
 
 export const careModelSteps = [
@@ -51,47 +72,51 @@ export const careModelSteps = [
     id: "assess",
     step: "01",
     title: "Assess",
-    description:
-      "We begin by understanding your health concerns, symptoms, history, lifestyle, and individual needs.",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto/v1790925220/assess_cmxpr1.jpg",
+    imageAlt: "Doctor assessing a patient during consultation",
   },
   {
     id: "understand",
     step: "02",
     title: "Understand",
-    description:
-      "We look deeper to identify the underlying factors that may be contributing to your health concerns.",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto/v1790925218/understand_zjgtmw.jpg",
+    imageAlt: "Looking deeper at lifestyle and health factors",
   },
   {
     id: "personalize",
     step: "03",
     title: "Personalize",
-    description: "Your care is tailored to you, because no two individuals are exactly alike.",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto/v1790925220/personalize_syhgjb.jpg",
+    imageAlt: "Personalized care planned around the individual",
   },
   {
     id: "treat",
     step: "04",
     title: "Treat & Support",
-    description:
-      "We bring together appropriate healthcare and therapeutic approaches to support your journey toward better health.",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto/v1790925220/treat_rnqxex.jpg",
+    imageAlt: "Caring treatment and supportive healthcare",
   },
   {
     id: "prevent",
     step: "05",
     title: "Prevent",
-    description:
-      "We focus not only on today's concerns, but also on reducing future health risks through awareness, lifestyle support, and preventive strategies.",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto/v1790925219/prevent_oyowky.jpg",
+    imageAlt: "Preventive care protecting long-term health",
   },
   {
     id: "thrive",
     step: "06",
     title: "Thrive",
-    description:
-      "Our ultimate goal is to help you move beyond simply managing health concerns and toward living a healthier, more fulfilling life.",
+    image:
+      "https://res.cloudinary.com/dbyuqt5xh/image/upload/q_auto,f_auto/v1790925220/thrive_hqdn3d.jpg",
+    imageAlt: "Living actively and thriving in good health",
   },
 ] as const;
-
-export const carePhilosophy =
-  "Assess → Understand → Personalize → Treat & Support → Prevent → Thrive";
 
 export const appointmentSteps = [
   {
@@ -158,7 +183,7 @@ export const faqItems = [
     id: "services",
     question: "What other services do you offer?",
     answer:
-      "Our services include Homeopathy, Speech Therapy, Physiotherapy, Occupational Therapy, Psychological Counseling, Clinical Psychology, Laboratory Services, Nutraceuticals, Supplements, Wellness Programs, Preventive Healthcare, and Corporate Healthcare Solutions.",
+      "Our services include Homeopathy, Speech-Language Therapy, Physiotherapy, Occupational Therapy, Psychological Counseling, Clinical Psychology, Diet & Nutrition Support, Laboratory Services, Nutraceuticals, Supplements, Wellness Programs, Preventive Healthcare, and Corporate Healthcare Solutions.",
   },
   {
     id: "appointment",

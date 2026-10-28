@@ -10,6 +10,9 @@ export const USER_MESSAGES = {
   profileNotFound:
     "No patient profile found. Check your mobile number or NIC and try again.",
   profileLoadFailed: "Unable to load your profile. Please try again later.",
+  bookingLookupFailed:
+    "Unable to find that booking. Check your reference number and phone, then try again.",
+  otpFailed: "Unable to verify OTP. Please try again.",
   bookingSuccess: "Appointment booked successfully.",
   contactSuccess: "Message sent successfully.",
   reviewSubmitSuccess: "Review submitted for approval.",

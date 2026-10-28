@@ -6,7 +6,6 @@ import PageState from "../ui/PageState";
 import { USER_MESSAGES } from "../../utils/userMessages";
 import TestimonialCard from "../reviews/TestimonialCard";
 import ScrollReveal from "./ScrollReveal";
-import SectionHeader from "./SectionHeader";
 
 function TestimonialsSection() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -31,13 +30,29 @@ function TestimonialsSection() {
   }, []);
 
   return (
-    <section className="home-section" id="testimonials" aria-labelledby="testimonials-heading">
+    <section
+      className="home-section testimonials-section"
+      id="testimonials"
+      aria-labelledby="testimonials-heading"
+    >
+      <div className="testimonials-section__glow" aria-hidden="true" />
       <ScrollReveal>
-        <SectionHeader
-          eyebrow="Patient Stories"
-          title="Trusted by the People We Care For"
-          description="The greatest measure of our work is the experience of the people we serve at Premier Care Integrative Clinic."
-        />
+        <header className="testimonials-section__header">
+          <div>
+            <span className="testimonials-section__eyebrow">
+              <span aria-hidden="true">✦</span>
+              Patient Stories
+            </span>
+            <h2 id="testimonials-heading" className="testimonials-section__title">
+              Care that
+              <span>stays with you.</span>
+            </h2>
+          </div>
+          <p className="testimonials-section__intro">
+            The greatest measure of our work is the experience of the people we
+            serve at Premier Care Integrative Clinic.
+          </p>
+        </header>
       </ScrollReveal>
 
       {loading && (
@@ -71,7 +86,7 @@ function TestimonialsSection() {
 
       {!loading && !error && reviews.length > 0 && (
         <>
-          <div className="home-grid home-grid--3">
+          <div className="testimonials-section__grid">
             {reviews.map((review, index) => (
               <ScrollReveal key={review.reviewId} delay={index * 100}>
                 <TestimonialCard review={review} />
@@ -81,7 +96,15 @@ function TestimonialsSection() {
           <ScrollReveal delay={200}>
             <div className="testimonials-section__cta">
               <Link to="/about#reviews" className="testimonials-section__link">
-                View All Reviews
+                <span>Read all patient stories</span>
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  aria-hidden="true"
+                >
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
               </Link>
             </div>
           </ScrollReveal>

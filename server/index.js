@@ -3,6 +3,8 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { listHolds, releaseHold, reserveHold } from "./slotHoldsStore.js";
+import { handleLandingEnquiry, validateLandingEnquiryBody } from "./landingEnquiry.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, "data");
@@ -11,6 +13,7 @@ const SEED_FILE = path.join(DATA_DIR, "reviews.seed.json");
 const BOOKINGS_FILE = path.join(DATA_DIR, "bookings.seed.json");
 const RMO_BOOKINGS_FILE = path.join(DATA_DIR, "rmo-bookings.json");
 const RMO_BOOKINGS_SEED = path.join(DATA_DIR, "rmo-bookings.seed.json");
+const DISCOVER_SEED_FILE = path.join(DATA_DIR, "channeling-discover.seed.json");
 const PORT = Number(process.env.REVIEWS_API_PORT || 7001);
 const PATIENTS_SERVED = Number(process.env.PATIENTS_SERVED || 5000);
 
@@ -74,6 +77,44 @@ function writeRmoBookings(bookings) {
 
 function todayDateKey() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function addDaysToDateKey(dateKey, days) {
+  const base = new Date(`${dateKey}T12:00:00.000Z`);
+  base.setUTCDate(base.getUTCDate() + days);
+  return base.toISOString().slice(0, 10);
+}
+
+function readDiscoverSessions() {
+  const raw = fs.readFileSync(DISCOVER_SEED_FILE, "utf8");
+  const template = JSON.parse(raw);
+  const today = todayDateKey();
+  return template.map((session, index) => ({
+    ...session,
+    sessionDate: addDaysToDateKey(today, (index % 5) + 1),
+  }));
+}
+
+function buildPublicDoctorsFromSessions(sessions) {
+  const byDoctor = new Map();
+  for (const session of sessions) {
+    if (byDoctor.has(session.doctorId)) continue;
+    byDoctor.set(session.doctorId, {
+      doctorId: session.doctorId,
+      doctorName: session.doctorName,
+      fullName: session.doctorName,
+      designation: session.designation,
+      specialization: session.specialization,
+      qualification: session.qualification,
+      experienceYears: session.experienceYears,
+      profileSummary: session.profileSummary,
+      slmcNumber: session.slmcNumber,
+      profileImage: session.profileImage,
+      isActive: session.isActive ?? true,
+      status: session.status ?? "Active",
+    });
+  }
+  return [...byDoctor.values()];
 }
 
 function matchesRmoLookup(booking, query) {
@@ -186,6 +227,185 @@ function getReviewStats(reviews) {
     totalReviews,
     patientsServed: PATIENTS_SERVED,
   };
+}
+
+/** In-memory attempt counters for public booking search (mock rate limit). */
+const publicBookingLookupAttempts = new Map();
+const PUBLIC_BOOKING_LOOKUP_MAX_ATTEMPTS = 20;
+
+const PUBLIC_STATUS_LABELS = {
+  WebBooked: "Booked online",
+  ArrivedAtReception: "At reception",
+  AssignedToRmo: "With RMO",
+  PendingRmo: "Booked online",
+  RmoInProgress: "RMO in progress",
+  RmoComplete: "RMO complete",
+  ReadyForDoctor: "Ready for doctor",
+};
+
+function maskMobile(mobile) {
+  const digits = normalizeMobile(mobile);
+  if (digits.length < 4) return digits;
+  return `${digits.slice(0, 3)}****${digits.slice(-3)}`;
+}
+
+function computeOngoingNumber(booking, peers) {
+  const ordered = [...peers].sort((a, b) => {
+    const time = a.doctorAppointmentTime.localeCompare(b.doctorAppointmentTime);
+    if (time !== 0) return time;
+    return a.bookingId - b.bookingId;
+  });
+  const index = ordered.findIndex((item) => item.bookingId === booking.bookingId);
+  return index >= 0 ? index + 1 : Math.max(1, booking.bookingId % 100);
+}
+
+function computeCurrentServingNumber(peers) {
+  const advanced = peers.filter((item) =>
+    ["ReadyForDoctor", "RmoComplete", "RmoInProgress", "AssignedToRmo"].includes(
+      item.rmoStatus,
+    ),
+  );
+  if (advanced.length === 0) return null;
+  return computeOngoingNumber(
+    advanced.sort((a, b) => b.bookingId - a.bookingId)[0],
+    peers,
+  );
+}
+
+function toPublicBookingView(booking, allBookings) {
+  const peers = allBookings.filter(
+    (item) =>
+      item.sessionDate === booking.sessionDate &&
+      item.doctorName === booking.doctorName &&
+      item.centerName === booking.centerName,
+  );
+  const ongoingNumber = computeOngoingNumber(booking, peers);
+  const currentServingNumber = computeCurrentServingNumber(peers);
+  const status = normalizeLegacyRmoStatus(booking.rmoStatus);
+
+  return {
+    bookingId: booking.bookingId,
+    bookingReference: booking.bookingReference,
+    fullName: booking.fullName,
+    mobileNumberMasked: maskMobile(booking.mobileNumber),
+    sessionDate: booking.sessionDate,
+    doctorAppointmentTime: booking.doctorAppointmentTime,
+    recommendedArrivalTime: booking.recommendedArrivalTime,
+    doctorName: booking.doctorName,
+    specialization: booking.specialization,
+    centerName: booking.centerName,
+    roomCode: booking.roomCode,
+    consultationFee: booking.consultationFee,
+    patientType: booking.patientType,
+    requiresRmoCaseTaking: Boolean(booking.requiresRmoCaseTaking),
+    status,
+    statusLabel: PUBLIC_STATUS_LABELS[status] ?? status,
+    ongoingNumber,
+    currentServingNumber,
+    queueMessage:
+      currentServingNumber == null
+        ? "Clinic has not started calling numbers for this session yet."
+        : `Clinic is currently serving approximately number ${currentServingNumber}.`,
+  };
+}
+
+function findPublicBooking(bookingReference, mobileNumber) {
+  const ref = normalizeBookingReference(bookingReference);
+  const mobile = normalizeMobile(mobileNumber);
+  if (!ref || !mobile) return null;
+
+  const rmoMatch = readRmoBookingsNormalized().find(
+    (booking) =>
+      normalizeBookingReference(booking.bookingReference) === ref &&
+      normalizeMobile(booking.mobileNumber) === mobile,
+  );
+  if (rmoMatch) return rmoMatch;
+
+  const light = findVerifiedBooking(ref, mobile);
+  if (!light) return null;
+
+  return {
+    bookingId: Number(String(ref).replace(/\D/g, "").slice(-3)) || 1,
+    bookingReference: ref,
+    patientType: "EXISTING",
+    requiresRmoCaseTaking: false,
+    rmoStatus: "WebBooked",
+    fullName: light.patientName,
+    mobileNumber: light.mobileNumber,
+    sessionDate: todayDateKey(),
+    doctorAppointmentTime: "09:00",
+    recommendedArrivalTime: "08:45",
+    rmoCaseTakingMinutes: 0,
+    doctorName: "PremierCare Clinic",
+    specialization: "General",
+    centerName: "PremierCare",
+    roomCode: "-",
+    consultationFee: 0,
+  };
+}
+
+function trackPublicLookupAttempt(bookingReference) {
+  const key = normalizeBookingReference(bookingReference) || "UNKNOWN";
+  const used = (publicBookingLookupAttempts.get(key) ?? 0) + 1;
+  publicBookingLookupAttempts.set(key, used);
+  return used;
+}
+
+/** Dev-friendly OTP soft-login (mock SMS). */
+const DEV_OTP_CODE = "123456";
+const OTP_TTL_MS = 5 * 60 * 1000;
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const otpChallenges = new Map();
+const patientSessions = new Map();
+
+function createToken(prefix) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function findPatientProfileByMobile(mobileNumber) {
+  const mobile = normalizeMobile(mobileNumber);
+  if (!mobile) return null;
+
+  const fromRmo = readRmoBookingsNormalized().find(
+    (booking) => normalizeMobile(booking.mobileNumber) === mobile,
+  );
+  if (fromRmo) {
+    return {
+      registrationId:
+        fromRmo.existingPatientRegistrationId ??
+        fromRmo.newPatientRegistrationId ??
+        fromRmo.bookingId,
+      patientCode: `PT-${String(fromRmo.bookingId).padStart(6, "0")}`,
+      fullName: fromRmo.fullName,
+      mobileNumber: normalizeMobile(fromRmo.mobileNumber),
+      nic: fromRmo.nicOrPassport || undefined,
+      email: fromRmo.email || undefined,
+    };
+  }
+
+  const fromReviews = readBookings().find(
+    (booking) => normalizeMobile(booking.mobileNumber) === mobile,
+  );
+  if (fromReviews) {
+    return {
+      registrationId: Number(String(fromReviews.bookingReference).replace(/\D/g, "").slice(-4)) || 1,
+      patientCode: fromReviews.bookingReference,
+      fullName: fromReviews.patientName,
+      mobileNumber: normalizeMobile(fromReviews.mobileNumber),
+    };
+  }
+
+  return null;
+}
+
+function purgeExpiredAuth() {
+  const now = Date.now();
+  for (const [mobile, challenge] of otpChallenges.entries()) {
+    if (challenge.expiresAt <= now) otpChallenges.delete(mobile);
+  }
+  for (const [token, session] of patientSessions.entries()) {
+    if (new Date(session.expiresAt).getTime() <= now) patientSessions.delete(token);
+  }
 }
 
 const app = express();
@@ -576,6 +796,342 @@ app.patch("/api/channeling/reception/bookings/:id/assign-rmo", (req, res) => {
     message: "Patient assigned to RMO. They will appear in the RMO intake queue.",
     booking,
   });
+});
+
+app.get("/api/channeling/public/bookings/lookup", (req, res) => {
+  const bookingReference = String(req.query.bookingReference ?? "").trim();
+  const mobileNumber = String(req.query.mobileNumber ?? "").trim();
+
+  if (!bookingReference || !mobileNumber) {
+    return res.status(400).json({
+      message: "Booking reference and phone number are required.",
+    });
+  }
+
+  const attempts = trackPublicLookupAttempt(bookingReference);
+  if (attempts > PUBLIC_BOOKING_LOOKUP_MAX_ATTEMPTS) {
+    return res.status(429).json({
+      message: "Too many search attempts for this booking. Please try again later.",
+      attemptsRemaining: 0,
+    });
+  }
+
+  const booking = findPublicBooking(bookingReference, mobileNumber);
+  if (!booking) {
+    return res.status(404).json({
+      message:
+        "No matching booking found. Check your reference number and the phone used at booking.",
+      attemptsRemaining: Math.max(0, PUBLIC_BOOKING_LOOKUP_MAX_ATTEMPTS - attempts),
+    });
+  }
+
+  return res.json({
+    booking: toPublicBookingView(booking, readRmoBookingsNormalized()),
+    attemptsRemaining: Math.max(0, PUBLIC_BOOKING_LOOKUP_MAX_ATTEMPTS - attempts),
+  });
+});
+
+app.post("/api/channeling/public/auth/otp/request", (req, res) => {
+  purgeExpiredAuth();
+  const mobileNumber = normalizeMobile(req.body?.mobileNumber);
+  if (!/^0\d{9}$/.test(mobileNumber)) {
+    return res.status(400).json({
+      message: "Enter a valid Sri Lankan mobile number (e.g. 0771234567).",
+    });
+  }
+
+  const code = DEV_OTP_CODE;
+  const expiresAt = Date.now() + OTP_TTL_MS;
+  otpChallenges.set(mobileNumber, {
+    code,
+    expiresAt,
+    attempts: 0,
+  });
+
+  console.log(`[OTP] ${mobileNumber} -> ${code} (dev mock)`);
+
+  return res.json({
+    sent: true,
+    mobileNumberMasked: maskMobile(mobileNumber),
+    expiresInSeconds: Math.floor(OTP_TTL_MS / 1000),
+    /** Included only for local/dev mock — remove when real SMS is wired. */
+    devOtp: code,
+    message: "OTP sent to your mobile number.",
+  });
+});
+
+app.post("/api/channeling/public/auth/otp/verify", (req, res) => {
+  purgeExpiredAuth();
+  const mobileNumber = normalizeMobile(req.body?.mobileNumber);
+  const code = String(req.body?.code ?? "").trim();
+
+  if (!/^0\d{9}$/.test(mobileNumber)) {
+    return res.status(400).json({
+      message: "Enter a valid Sri Lankan mobile number (e.g. 0771234567).",
+    });
+  }
+  if (!/^\d{4,8}$/.test(code)) {
+    return res.status(400).json({ message: "Enter the OTP code sent to your phone." });
+  }
+
+  const challenge = otpChallenges.get(mobileNumber);
+  if (!challenge || challenge.expiresAt <= Date.now()) {
+    otpChallenges.delete(mobileNumber);
+    return res.status(400).json({
+      message: "OTP expired or not requested. Please request a new code.",
+    });
+  }
+
+  challenge.attempts += 1;
+  if (challenge.attempts > 5) {
+    otpChallenges.delete(mobileNumber);
+    return res.status(429).json({
+      message: "Too many incorrect attempts. Request a new OTP.",
+    });
+  }
+
+  if (challenge.code !== code && code !== DEV_OTP_CODE) {
+    return res.status(401).json({ message: "Incorrect OTP. Please try again." });
+  }
+
+  otpChallenges.delete(mobileNumber);
+
+  const profile = findPatientProfileByMobile(mobileNumber);
+  const patient = profile ?? {
+    registrationId: Number(mobileNumber.slice(-8)) || Date.now(),
+    patientCode: `MOB-${mobileNumber.slice(-4)}`,
+    fullName: "",
+    mobileNumber,
+  };
+
+  const sessionToken = createToken("ps");
+  const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
+  const session = {
+    sessionToken,
+    expiresAt,
+    mobileNumber,
+    patient,
+  };
+  patientSessions.set(sessionToken, session);
+
+  return res.json({
+    verified: true,
+    sessionToken,
+    expiresAt,
+    mobileNumberMasked: maskMobile(mobileNumber),
+    patient: patient.fullName
+      ? patient
+      : {
+          ...patient,
+          fullName: "Verified patient",
+        },
+    profileFound: Boolean(profile?.fullName),
+    message: profile?.fullName
+      ? "Signed in. Your details will autofill on the next booking."
+      : "Mobile verified. Complete your details for this booking.",
+  });
+});
+
+app.get("/api/channeling/public/auth/session", (req, res) => {
+  purgeExpiredAuth();
+  const token = String(req.query.token ?? req.headers["x-patient-session"] ?? "").trim();
+  if (!token) {
+    return res.status(401).json({ message: "Session token is required." });
+  }
+
+  const session = patientSessions.get(token);
+  if (!session || new Date(session.expiresAt).getTime() <= Date.now()) {
+    patientSessions.delete(token);
+    return res.status(401).json({ message: "Session expired. Please sign in again." });
+  }
+
+  return res.json({
+    sessionToken: session.sessionToken,
+    expiresAt: session.expiresAt,
+    mobileNumberMasked: maskMobile(session.mobileNumber),
+    patient: session.patient,
+  });
+});
+
+app.post("/api/channeling/public/auth/logout", (req, res) => {
+  const token = String(req.body?.sessionToken ?? "").trim();
+  if (token) patientSessions.delete(token);
+  return res.json({ signedOut: true });
+});
+
+app.post("/api/channeling/public/bookings/resend-sms", (req, res) => {
+  const bookingReference = String(req.body?.bookingReference ?? "").trim();
+  const mobileNumber = String(req.body?.mobileNumber ?? "").trim();
+
+  if (!bookingReference || !mobileNumber) {
+    return res.status(400).json({
+      message: "Booking reference and phone number are required.",
+    });
+  }
+
+  const booking = findPublicBooking(bookingReference, mobileNumber);
+  if (!booking) {
+    return res.status(404).json({
+      message:
+        "No matching booking found. Check your reference number and the phone used at booking.",
+    });
+  }
+
+  const digits = normalizeMobile(booking.mobileNumber);
+  if (!/^0\d{9}$/.test(digits)) {
+    return res.status(400).json({
+      message:
+        "Please use the local phone number entered under patient's details. This feature is not available for foreign numbers.",
+    });
+  }
+
+  return res.json({
+    sent: true,
+    bookingReference: normalizeBookingReference(booking.bookingReference),
+    mobileNumberMasked: maskMobile(digits),
+    message: "Booking confirmation SMS has been resent to the registered mobile number.",
+  });
+});
+
+app.get("/api/channeling/holds", (req, res) => {
+  const sessionId = req.query.sessionId ? Number(req.query.sessionId) : null;
+  return res.json({ holds: listHolds(sessionId) });
+});
+
+app.post("/api/channeling/holds/reserve", (req, res) => {
+  try {
+    const channelSlotId = Number(req.body?.channelSlotId);
+    const sessionId = Number(req.body?.sessionId);
+    if (!Number.isFinite(channelSlotId) || channelSlotId <= 0) {
+      return res.status(400).json({ message: "Valid channelSlotId is required." });
+    }
+    if (!Number.isFinite(sessionId) || sessionId <= 0) {
+      return res.status(400).json({ message: "Valid sessionId is required." });
+    }
+    const reserved = reserveHold({
+      channelSlotId,
+      sessionId,
+      holdToken:
+        typeof req.body?.holdToken === "string" ? req.body.holdToken.trim() : "",
+      durationSeconds: req.body?.durationSeconds,
+      slotTime:
+        typeof req.body?.slotTime === "string" ? req.body.slotTime : "",
+    });
+    return res.json(reserved);
+  } catch (err) {
+    return res.status(Number(err.status) || 500).json({
+      message: err.message || "Hold request failed.",
+      code: err.code,
+      expiresAt: err.expiresAt,
+    });
+  }
+});
+
+app.get("/api/channeling/public/discover", (_req, res) => {
+  try {
+    return res.json(readDiscoverSessions());
+  } catch (err) {
+    return res.status(500).json({
+      message: err.message || "Unable to load discover sessions.",
+    });
+  }
+});
+
+app.get("/api/channeling/public/doctors", (_req, res) => {
+  try {
+    return res.json(buildPublicDoctorsFromSessions(readDiscoverSessions()));
+  } catch (err) {
+    return res.status(500).json({
+      message: err.message || "Unable to load doctors.",
+    });
+  }
+});
+
+app.get("/api/channeling/public/specializations", (_req, res) => {
+  try {
+    const sessions = readDiscoverSessions();
+    const names = [
+      ...new Set(
+        sessions
+          .map((session) => session.specialization)
+          .filter((value) => typeof value === "string" && value.trim()),
+      ),
+    ];
+    return res.json(
+      names.map((name, index) => ({
+        id: index + 1,
+        name,
+        specialization: name,
+      })),
+    );
+  } catch (err) {
+    return res.status(500).json({
+      message: err.message || "Unable to load specializations.",
+    });
+  }
+});
+
+app.get("/api/channeling/public/sessions/:sessionId/slots", (req, res) => {
+  const sessionId = Number(req.params.sessionId);
+  if (!Number.isFinite(sessionId) || sessionId <= 0) {
+    return res.status(400).json({ message: "Invalid session id." });
+  }
+  const slots = [
+    { slotId: sessionId * 10 + 1, startTime: "09:00", endTime: "09:15", isAvailable: true },
+    { slotId: sessionId * 10 + 2, startTime: "09:20", endTime: "09:35", isAvailable: true },
+    { slotId: sessionId * 10 + 3, startTime: "09:40", endTime: "09:55", isAvailable: false },
+    { slotId: sessionId * 10 + 4, startTime: "10:00", endTime: "10:15", isAvailable: true },
+  ];
+  return res.json(slots);
+});
+
+app.post("/api/channeling/holds/release", (req, res) => {
+  try {
+    const channelSlotId = Number(req.body?.channelSlotId);
+    const holdToken =
+      typeof req.body?.holdToken === "string" ? req.body.holdToken.trim() : "";
+    if (!Number.isFinite(channelSlotId) || channelSlotId <= 0 || !holdToken) {
+      return res.status(400).json({
+        message: "channelSlotId and holdToken are required.",
+      });
+    }
+    return res.json(
+      releaseHold({
+        channelSlotId,
+        holdToken,
+        slotTime:
+          typeof req.body?.slotTime === "string" ? req.body.slotTime : "",
+        sessionId: Number(req.body?.sessionId) || null,
+      }),
+    );
+  } catch (err) {
+    return res.status(Number(err.status) || 500).json({
+      message: err.message || "Hold release failed.",
+    });
+  }
+});
+
+app.post("/api/public/landing-enquiry", async (req, res) => {
+  const validation = validateLandingEnquiryBody(req.body);
+  if (!validation.ok) {
+    return res.status(400).json({ message: validation.message });
+  }
+  try {
+    const result = await handleLandingEnquiry({
+      dataDir: DATA_DIR,
+      landingId: validation.landingId,
+      fields: validation.fields,
+    });
+    return res.json({
+      message: "Enquiry received.",
+      emailed: result.emailed,
+    });
+  } catch (err) {
+    console.error("[landing-enquiry]", err);
+    return res.status(500).json({
+      message: "We could not send your enquiry right now. Please try again.",
+    });
+  }
 });
 
 app.listen(PORT, () => {

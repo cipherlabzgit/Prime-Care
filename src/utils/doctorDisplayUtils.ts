@@ -61,6 +61,17 @@ type DoctorPhotoSource = {
   profilePhoto?: string | null;
 };
 
+/** ERP returns `/uploads/...`; public gateway serves files under `/api/channeling/public/uploads/...`. */
+function normalizePublicUploadPath(path: string): string {
+  if (path.startsWith("/api/channeling/public/uploads/")) {
+    return path;
+  }
+  if (path.startsWith("/uploads/")) {
+    return `/api/channeling/public${path}`;
+  }
+  return path;
+}
+
 export function getDoctorProfileImagePath(
   source?: DoctorPhotoSource | null,
 ): string | undefined {
@@ -80,7 +91,9 @@ export function resolveDoctorPhotoUrl(photo?: string | null): string | undefined
   ) {
     return trimmed;
   }
-  const path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  const path = normalizePublicUploadPath(
+    trimmed.startsWith("/") ? trimmed : `/${trimmed}`,
+  );
   return `${CHANNELING_API_ORIGIN}${path}`;
 }
 

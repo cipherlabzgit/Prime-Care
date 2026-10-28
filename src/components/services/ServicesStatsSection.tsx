@@ -3,14 +3,16 @@ import { useCountUp } from "../../hooks/useCountUp";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
 import ScrollReveal from "../home/ScrollReveal";
 
-function AnimatedStat({
+function AnimatedStatCard({
   value,
   label,
   delay,
+  index,
 }: {
   value: string;
   label: string;
   delay: number;
+  index: number;
 }) {
   const { ref, isVisible } = useScrollReveal<HTMLLIElement>();
   const display = useCountUp(value, isVisible);
@@ -18,30 +20,41 @@ function AnimatedStat({
   return (
     <li
       ref={ref}
-      className={`stat-item stat-item--animated home-reveal ${isVisible ? "home-reveal--visible" : ""}`}
+      className={`svc-stat home-reveal ${isVisible ? "home-reveal--visible" : ""}`}
       style={{ transitionDelay: `${delay}ms` }}
+      data-index={String(index + 1).padStart(2, "0")}
     >
-      <span className="stat-item__value">{display}</span>
-      <span className="stat-item__label">{label}</span>
+      <span className="svc-stat__value">{display}</span>
+      <span className="svc-stat__label">{label}</span>
     </li>
   );
 }
 
 function ServicesStatsSection() {
   return (
-    <section className="stats-section" aria-label="PremierCare service statistics">
-      <div className="stats-section__glow" aria-hidden="true" />
-      <div className="stats-section__inner">
-        <ScrollReveal>
-          <p className="stats-section__eyebrow">Care at Scale</p>
+    <section className="svc-stats" aria-label="PremierCare service statistics">
+      <div className="svc-stats__glow" aria-hidden="true" />
+      <div className="svc-stats__inner">
+        <ScrollReveal className="svc-stats__header">
+          <p className="svc-stats__eyebrow">Care at Scale</p>
+          <h2 className="svc-stats__title">
+            <span>Comprehensive</span>
+            <span className="svc-stats__title-accent">Healthcare</span>
+          </h2>
+          <p className="svc-stats__sub">
+            Every discipline, every patient, every day at Premier Care
+            Integrative Clinic.
+          </p>
         </ScrollReveal>
-        <ul className="stats-grid">
+
+        <ul className="svc-stats__grid">
           {servicesStatistics.map((stat, index) => (
-            <AnimatedStat
+            <AnimatedStatCard
               key={stat.id}
               value={stat.value}
               label={stat.label}
-              delay={index * 100}
+              delay={index * 110}
+              index={index}
             />
           ))}
         </ul>

@@ -7,6 +7,7 @@ import { resolveDoctorAvailability } from "../utils/doctorAvailability";
 import { getSessionDoctorName } from "../utils/doctorDisplayUtils";
 
 const PUBLIC_DOCTORS_URL = `${CHANNELING_API_ORIGIN}/api/channeling/public/doctors`;
+const PUBLIC_SPECIALIZATIONS_URL = `${CHANNELING_API_ORIGIN}/api/channeling/public/specializations`;
 
 export interface PublicDoctorApi {
   doctorId: number;
@@ -100,6 +101,72 @@ export async function fetchPublicDoctors(): Promise<
   return normalizePublicDoctors(data);
 }
 
+export interface PublicSpecializationApi {
+  id?: number | string;
+  name?: string | null;
+  specialization?: string | null;
+  specializationName?: string | null;
+}
+
+function unwrapList<T>(
+  data: T[] | { value?: T[]; data?: T[] } | null | undefined,
+): T[] {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.data)) return data.data;
+  if (data && Array.isArray(data.value)) return data.value;
+  return [];
+}
+
+function normalizeSpecializationName(
+  raw: PublicSpecializationApi | string,
+): string | undefined {
+  if (typeof raw === "string") return trimOptional(raw);
+  return (
+    trimOptional(raw.name) ??
+    trimOptional(raw.specialization) ??
+    trimOptional(raw.specializationName)
+  );
+}
+
+export interface ChannelingDoctorFilterOption {
+  doctorId: number;
+  fullName: string;
+  designation?: string;
+  qualification?: string;
+  experienceYears?: number;
+  profileSummary?: string;
+  profilePhoto?: string;
+}
+
+export function buildChannelingDoctorFilterOptions(
+  sessions: ChannelingSession[],
+  apiDoctors: ReturnType<typeof normalizePublicDoctor>[] = [],
+): ChannelingDoctorFilterOption[] {
+  return buildDoctorDirectory(sessions, apiDoctors).map((doctor) => ({
+    doctorId: doctor.doctorId,
+    fullName: doctor.doctorName,
+    designation: doctor.designation,
+    qualification: doctor.qualification,
+    experienceYears: doctor.experienceYears,
+    profileSummary: doctor.profileSummary,
+    profilePhoto: doctor.profileImage ?? doctor.profilePhoto,
+  }));
+}
+
+export async function fetchPublicSpecializations(): Promise<string[]> {
+  const { data } = await axios.get<
+    | PublicSpecializationApi[]
+    | string[]
+    | { value?: PublicSpecializationApi[] | string[]; data?: PublicSpecializationApi[] | string[] }
+  >(PUBLIC_SPECIALIZATIONS_URL);
+
+  const names = unwrapList<PublicSpecializationApi | string>(data)
+    .map(normalizeSpecializationName)
+    .filter((name): name is string => Boolean(name) && name !== "-");
+
+  return [...new Set(names)].sort((a, b) => a.localeCompare(b));
+}
+
 interface SessionDoctorStats {
   centers: Set<string>;
   sessionCount: number;
@@ -178,6 +245,32 @@ function pickString(
   return current;
 }
 
+function normalizeDoctorNameKey(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function preferDoctorProfile(a: DoctorProfile, b: DoctorProfile): DoctorProfile {
+  if (a.futureSessionCount !== b.futureSessionCount) {
+    return a.futureSessionCount > b.futureSessionCount ? a : b;
+  }
+  if (a.sessionCount !== b.sessionCount) {
+    return a.sessionCount > b.sessionCount ? a : b;
+  }
+  return a.doctorId < b.doctorId ? a : b;
+}
+
+function dedupeDoctorProfilesByName(profiles: DoctorProfile[]): DoctorProfile[] {
+  const byName = new Map<string, DoctorProfile>();
+
+  for (const profile of profiles) {
+    const key = normalizeDoctorNameKey(profile.doctorName);
+    const existing = byName.get(key);
+    byName.set(key, existing ? preferDoctorProfile(existing, profile) : profile);
+  }
+
+  return [...byName.values()];
+}
+
 export function buildDoctorDirectory(
   sessions: ChannelingSession[],
   apiDoctors: ReturnType<typeof normalizePublicDoctor>[] = [],
@@ -242,5 +335,7 @@ export function buildDoctorDirectory(
     } satisfies DoctorProfile;
   });
 
-  return profiles.sort((a, b) => a.doctorName.localeCompare(b.doctorName));
+  return dedupeDoctorProfilesByName(profiles).sort((a, b) =>
+    a.doctorName.localeCompare(b.doctorName),
+  );
 }
